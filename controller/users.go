@@ -19,7 +19,7 @@ func SignUp(c *gin.Context) {
 	if err != nil {
 		utils.Logger.Error("cannot parsed the requested data", zap.Error(err), zap.Int64("userId", user.ID))
 		c.Set("response", nil)
-		c.Set("message", "cannot parsed the requested data")
+		c.Set("message", "failed to register the user")
 		c.Set("error", true)
 		c.Status(http.StatusBadRequest)
 		return
@@ -39,9 +39,9 @@ func SignUp(c *gin.Context) {
 	//Save user in DB
 	uid, err := dao.SaveUser(&user)
 	if err != nil {
-		utils.Logger.Error("Could not save user. EmailId already existed", zap.Error(err), zap.Int64("userId", user.ID))
+		utils.Logger.Error("Unable to save user. User already exist", zap.Error(err), zap.Int64("userId", user.ID))
 		c.Set("response", nil)
-		c.Set("message", "Could not save user. EmailId already existed")
+		c.Set("message", "user already exist")
 		c.Set("error", true)
 		c.Status(http.StatusBadRequest)
 		return
@@ -51,9 +51,9 @@ func SignUp(c *gin.Context) {
 	//Generate user token
 	userToken, err := utils.GenerateJwtToken(uid)
 	if err != nil {
-		utils.Logger.Error("could not generate the user token", zap.Error(err), zap.Int64("userId", user.ID))
+		utils.Logger.Error("unable to generate the user token", zap.Error(err), zap.Int64("userId", user.ID))
 		c.Set("response", nil)
-		c.Set("message", "could not generate the user token")
+		c.Set("message", "failed to register the user")
 		c.Set("error", true)
 		c.Status(http.StatusInternalServerError)
 		return
@@ -62,9 +62,9 @@ func SignUp(c *gin.Context) {
 	//Generate Refresh token
 	refreshToken, err := utils.GenerateRefreshToken(uid)
 	if err != nil {
-		utils.Logger.Error("could not generate the refresh token", zap.Error(err), zap.Int64("userId", user.ID))
+		utils.Logger.Error("unable to generate the refresh token", zap.Error(err), zap.Int64("userId", user.ID))
 		c.Set("response", nil)
-		c.Set("message", "could not generate the refresh token")
+		c.Set("message", "failed to register the user")
 		c.Set("error", true)
 		c.Status(http.StatusInternalServerError)
 		return
@@ -73,17 +73,17 @@ func SignUp(c *gin.Context) {
 	//Save tokens
 	err = dao.SaveToken(uid, userToken, refreshToken)
 	if err != nil {
-		utils.Logger.Error("could not save the token", zap.Error(err), zap.Int64("userId", user.ID))
+		utils.Logger.Error("failed to save the token", zap.Error(err), zap.Int64("userId", user.ID))
 		c.Set("response", nil)
-		c.Set("message", "could not save the token")
+		c.Set("message", "failed to register the user")
 		c.Set("error", true)
 		c.Status(http.StatusInternalServerError)
 		return
 	}
 
-	utils.Logger.Info("User save successfully", zap.Int64("userId", uid))
+	utils.Logger.Info("User registered successfully", zap.Int64("userId", uid))
 	c.Set("response", gin.H{"refresh_token": refreshToken, "user_token": userToken})
-	c.Set("message", "User save successfully")
+	c.Set("message", "User registered successfully")
 	c.Set("error", false)
 	c.Status(http.StatusCreated)
 }
@@ -97,7 +97,7 @@ func SignIn(c *gin.Context) {
 		utils.Logger.Warn("Failed to parse login request", zap.Error(err))
 
 		c.Set("response", nil)
-		c.Set("message", "could not parse the request data")
+		c.Set("message", "username and password required")
 		c.Set("error", true)
 		c.Status(http.StatusBadRequest)
 		return
@@ -109,7 +109,7 @@ func SignIn(c *gin.Context) {
 		utils.Logger.Warn("Authentication failed", zap.Error(err))
 
 		c.Set("response", nil)
-		c.Set("message", "could not authenticate user")
+		c.Set("message", "incorrect username or password")
 		c.Set("error", true)
 		c.Status(http.StatusBadRequest)
 		return
@@ -121,7 +121,7 @@ func SignIn(c *gin.Context) {
 		utils.Logger.Error("Failed to generate user token", zap.Int64("userId", login.ID), zap.Error(err))
 
 		c.Set("response", nil)
-		c.Set("message", "could not generate the token")
+		c.Set("message", "user login failed")
 		c.Set("error", true)
 		c.Status(http.StatusInternalServerError)
 		return
@@ -133,7 +133,7 @@ func SignIn(c *gin.Context) {
 		utils.Logger.Error("Failed to generate refresh token", zap.Int64("userId", login.ID), zap.Error(err))
 
 		c.Set("response", nil)
-		c.Set("message", "could not generate the token")
+		c.Set("message", "user login failed")
 		c.Set("error", true)
 		c.Status(http.StatusInternalServerError)
 		return
@@ -145,7 +145,7 @@ func SignIn(c *gin.Context) {
 		utils.Logger.Error("Failed to save token", zap.Int64("userId", login.ID), zap.Error(err))
 
 		c.Set("response", nil)
-		c.Set("message", "could not save the token")
+		c.Set("message", "user login failed")
 		c.Set("error", true)
 		c.Status(http.StatusInternalServerError)
 		return
