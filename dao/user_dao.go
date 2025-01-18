@@ -10,7 +10,7 @@ import (
 )
 
 // Save user in DB
-func (u *models.User) Save() (int64, error) {
+func SaveUser(u *models.User) (int64, error) {
 	user := User{
 		Name:     u.Name,
 		MobileNo: u.Mobile_No,
@@ -45,7 +45,7 @@ func (u *models.User) Save() (int64, error) {
 }
 
 // Save pair of tokens in db
-func (u *models.User) SaveToken(uid int64, user_token, refresh_token string) error {
+func SaveToken(uid int64, user_token, refresh_token string) error {
 	token := Token{
 		UserToken:    user_token,
 		RefreshToken: refresh_token,
@@ -61,7 +61,7 @@ func (u *models.User) SaveToken(uid int64, user_token, refresh_token string) err
 }
 
 // validate credentials
-func (u *models.Login) ValidateCredentials() error {
+func ValidateCredentials(u *models.Login) error {
 	var login models.Login
 	if err := DB.Where("email = ?", u.Email).First(&login).Error; err != nil {
 		utils.Logger.Warn("Invalid credentials provided", zap.Error(err))

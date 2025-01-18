@@ -5,6 +5,7 @@ import (
 
 	"task_manager/models"
 	"task_manager/utils"
+	"task_manager/dao"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -36,7 +37,7 @@ func SignUp(c *gin.Context) {
 	}
 
 	//Save user in DB
-	uid, err := user.Save()
+	uid, err := dao.SaveUser(&user)
 	if err != nil {
 		utils.Logger.Error("Could not save user. EmailId already existed", zap.Error(err), zap.Int64("userId", user.ID))
 		c.Set("response", nil)
@@ -70,7 +71,7 @@ func SignUp(c *gin.Context) {
 	}
 
 	//Save tokens
-	err = user.SaveToken(uid, userToken, refreshToken)
+	err = dao.SaveToken(uid, userToken, refreshToken)
 	if err != nil {
 		utils.Logger.Error("could not save the token", zap.Error(err), zap.Int64("userId", user.ID))
 		c.Set("response", nil)
@@ -90,7 +91,6 @@ func SignUp(c *gin.Context) {
 // user sign in
 func SignIn(c *gin.Context) {
 	var login models.Login
-	var user models.User
 
 	err := c.ShouldBindJSON(&login)
 	if err != nil {
@@ -104,7 +104,7 @@ func SignIn(c *gin.Context) {
 	}
 
 	//validate credentials
-	err = login.ValidateCredentials()
+	err = dao.ValidateCredentials(&login)
 	if err != nil {
 		utils.Logger.Warn("Authentication failed", zap.Error(err))
 
@@ -140,7 +140,7 @@ func SignIn(c *gin.Context) {
 	}
 
 	//save token in db
-	err = user.SaveToken(login.ID, userToken, refreshToken)
+	err = dao.SaveToken(login.ID, userToken, refreshToken)
 	if err != nil {
 		utils.Logger.Error("Failed to save token", zap.Int64("userId", login.ID), zap.Error(err))
 
