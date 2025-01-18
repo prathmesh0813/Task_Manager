@@ -7,9 +7,6 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-// const secretKey = "superscrete"
-// const secretKey2 = "supertopscrete"
-
 // generates user token
 func GenerateJwtToken(userId int64) (string, error) {
 

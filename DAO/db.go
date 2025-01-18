@@ -1,18 +1,18 @@
 package dao
 
 import (
+	"os"
 	"task_manager/utils"
 	"time"
 
 	"go.uber.org/zap"
-	"gorm.io/driver/sqlite"
+	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
 var DB *gorm.DB
 
-
-//User DB Schema
+// User DB Schema
 type User struct {
 	ID       int64  `gorm:"primaryKey;autoIncrement"`
 	Name     string `gorm:"not null"`
@@ -21,7 +21,7 @@ type User struct {
 	Email    string `gorm:"not null;unique"`
 }
 
-//Token DB Schema
+// Token DB Schema
 type Token struct {
 	ID           int64     `gorm:"primaryKey;autoIncrement"`
 	RefreshToken string    `gorm:"not null;unique"`
@@ -31,28 +31,22 @@ type Token struct {
 	User         User `gorm:"foreignKey:UserID"`
 }
 
-
-//Login DB schema
+// Login DB schema
 type Login struct {
 	ID       int64  `gorm:"primaryKey;autoIncrement"`
 	Email    string `gorm:"not null;unique"`
 	Password string `gorm:"not null"`
-	UserID int64
-	User   User `gorm:"foreignKey:UserID"`
+	UserID   int64
+	User     User `gorm:"foreignKey:UserID"`
 }
 
 func InitDB() {
 	var err error
-	DB, err = gorm.Open(sqlite.Open("task.db"), &gorm.Config{})
+
+	DB, err = gorm.Open(mysql.Open(os.Getenv("DB_URL")), &gorm.Config{})
 	if err != nil {
-		// log.Fatalf("Could not connect to database: %v", err)
 		utils.Logger.Fatal("Could not connect to database", zap.Error(err))
 	}
-
-	// DB, err = gorm.Open(mysql.Open(os.Getenv("DB_URL")), &gorm.Config{})
-	// if err != nil {
-	// 	panic("failed to connect database")
-	// }
 
 	createTables()
 }
