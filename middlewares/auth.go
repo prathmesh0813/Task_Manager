@@ -77,3 +77,25 @@ func CheckTokenPresent(c *gin.Context) error {
 	utils.Logger.Info("Token found in database", zap.String("tokenID", fmt.Sprintf("%d", dbToken.ID)))
 	return err
 }
+
+// check whether refresh token is present in db or not
+func CheckRefreshToken(context *gin.Context) error {
+	refreshToken := context.Request.Header.Get("Refresh-Token")
+	if refreshToken == "" {
+		utils.Logger.Error("Refresh token is missing in request header")
+		context.JSON(http.StatusUnauthorized, gin.H{"message": "Refresh token required", "error": true, "data": nil})
+		return fmt.Errorf("refresh token missing")
+	}
+
+	var dbToken dao.Token
+
+	err := dao.DB.Where("refresh_token = ?", refreshToken).First(&dbToken).Error
+	if err != nil {
+		utils.Logger.Error("Session expired or refresh token not found", zap.Error(err))
+		context.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Invalid or expired refresh token", "error": true, "data": nil})
+		return err
+	}
+
+	utils.Logger.Info("Token found in the database", zap.String("tokenId", fmt.Sprintf("%d", dbToken.ID)))
+	return err
+}

@@ -91,3 +91,20 @@ func GetUserById(uid int64) (*models.UserResponse, error) {
 	utils.Logger.Info("Fetched Task by id successfully", zap.Int64("userId", uid))
 	return &user, nil
 }
+
+// delete refresh token from DB
+func DeleteRefreshToken(tokenString string) error {
+	var token Token
+	if err := DB.Where("refresh_token = ?", tokenString).First(&token).Error; err != nil {
+		utils.Logger.Error("Refresh Token not found for deletion", zap.Error(err))
+		return err
+	}
+
+	if err := DB.Delete(&token).Error; err != nil {
+		utils.Logger.Error("Failed to delete refresh token", zap.Error(err))
+		return err
+	}
+
+	utils.Logger.Info("Refresh Token deleted successfully")
+	return nil
+}
