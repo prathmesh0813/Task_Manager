@@ -3,6 +3,7 @@ package dao
 import (
 	"task_manager/models"
 	"task_manager/utils"
+	"time"
 
 	"go.uber.org/zap"
 )
@@ -19,7 +20,7 @@ func SaveTask(t *models.Task) error {
 	return nil
 }
 
-//fetch rask by id
+// fetch rask by id
 func GetTaskByID(id, userId int64) (*Task, error) {
 	var task Task
 	result := DB.Where("id = ? AND user_id = ?", id, userId).First(&task)
@@ -32,7 +33,7 @@ func GetTaskByID(id, userId int64) (*Task, error) {
 	return &task, nil
 }
 
-//fetch all tasks using filters
+// fetch all tasks using filters
 func GetTasksWithFilters(userId int64, sortOrder, completed string, limit, offset int) ([]Task, int64, error) {
 	var tasks []Task
 	var totalTasks int64
@@ -62,3 +63,14 @@ func GetTasksWithFilters(userId int64, sortOrder, completed string, limit, offse
 	return tasks, totalTasks, nil
 }
 
+// update task in db
+func Update(t *models.Task) error {
+	result := DB.Model(&Task{}).Where("id = ?", t.ID).Updates(Task{Completed: t.Completed, UpdatedAt: time.Now()})
+	if result.Error != nil {
+		utils.Logger.Error("Failed to update task", zap.Error(result.Error), zap.Int64("taskId", t.ID))
+		return result.Error
+	}
+
+	utils.Logger.Info("Task updated successfully", zap.Int64("taskId", t.ID))
+	return result.Error
+}

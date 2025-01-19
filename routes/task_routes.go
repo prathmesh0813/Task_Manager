@@ -13,4 +13,5 @@ func TaskRoutes(server *gin.Engine) {
 	route.POST("/tasks", middlewares.Authenticate, controller.CreateTask, middlewares.ResponseFormatter())
 	route.GET("/tasks/:id", middlewares.Authenticate, controller.GetTask, middlewares.ResponseFormatter())
 	route.GET("/tasks", middlewares.Authenticate, controller.GetTasksByQuery, middlewares.ResponseFormatter())
+	route.PUT("/tasks/:id", middlewares.Authenticate, controller.UpdateTask, middlewares.ResponseFormatter())
 }

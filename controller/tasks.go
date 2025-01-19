@@ -171,3 +171,78 @@ func GetTasksByQuery(c *gin.Context) {
 	c.Set("error", false)
 	c.Status(http.StatusOK)
 }
+
+// Update Task
+func UpdateTask(c *gin.Context) {
+	err := middlewares.CheckTokenPresent(c)
+	if err != nil {
+		return
+	}
+
+	taskId, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		utils.Logger.Error("Failed to parse task ID", zap.String("param", c.Param("id")), zap.Error(err))
+
+		c.Set("response", nil)
+		c.Set("message", "could not parse data")
+		c.Set("error", true)
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
+	userID := c.GetInt64("userId")
+
+	task, err := dao.GetTaskByID(taskId, userID)
+	if err != nil {
+		utils.Logger.Error("Failed to fetch task", zap.Int64("taskId", taskId), zap.Int64("userId", userID), zap.Error(err))
+
+		c.Set("response", nil)
+		c.Set("message", "could not fetch task")
+		c.Set("error", true)
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	if task.UserID != userID {
+		utils.Logger.Warn("User not authorized to update task", zap.Int64("taskId", taskId), zap.Int64("userId", userID))
+
+		c.Set("response", nil)
+		c.Set("message", "not authorized to update")
+		c.Set("error", true)
+		c.Status(http.StatusUnauthorized)
+		return
+	}
+
+	var updatedTask models.Task
+
+	err = c.ShouldBindJSON(&updatedTask)
+	if err != nil {
+		utils.Logger.Error("Failed to bind json", zap.Error(err))
+
+		c.Set("response", nil)
+		c.Set("message", "could not parse request")
+		c.Set("error", true)
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
+	updatedTask.ID = taskId
+
+	err = dao.Update(&updatedTask)
+	if err != nil {
+		utils.Logger.Error("Failed to update task", zap.Int64("taskId", taskId), zap.Error(err))
+
+		c.Set("response", nil)
+		c.Set("message", "could not update task")
+		c.Set("error", true)
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	utils.Logger.Info("Task updated successfully", zap.Int64("taskId", taskId), zap.Int64("userId", userID))
+
+	c.Set("response", nil)
+	c.Set("message", "task updated successfully")
+	c.Set("error", false)
+	c.Status(http.StatusOK)
+}

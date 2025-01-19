@@ -2,7 +2,7 @@ package models
 
 import "time"
 
-//user task struct
+// user task struct
 type Task struct {
 	ID          int64  `json:"id"`
 	Title       string `json:"title"`
@@ -12,3 +12,4 @@ type Task struct {
 	UpdatedAt   time.Time
 	UserID      int64 `json:"userId"`
 }
+
