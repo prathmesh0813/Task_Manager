@@ -115,3 +115,31 @@ func UploadAvatar(c *gin.Context) {
 	c.Set("error", false)
 	c.Status(http.StatusOK)
 }
+
+// read avatar
+func ReadAvatar(c *gin.Context) {
+	userId, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		utils.Logger.Error("Failed to parse avatar Id", zap.String("param", c.Param("id")), zap.Error(err))
+
+		c.Set("response", nil)
+		c.Set("message", "could not parse avatar id")
+		c.Set("error", true)
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
+	avatar, err := dao.ReadAvatar(userId)
+	if err != nil {
+		utils.Logger.Error("failed to read avatar")
+
+		c.Set("response", nil)
+		c.Set("message", "failed to read avatar")
+		c.Set("error", true)
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	utils.Logger.Info("avatar fetched successfully")
+	c.Data(http.StatusOK, "image/jpg", avatar.Data)
+}
