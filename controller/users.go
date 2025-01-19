@@ -364,6 +364,12 @@ func UpdatePassword(c *gin.Context) {
 
 // Signout user
 func SignOut(c *gin.Context) {
+
+	err := middlewares.CheckTokenPresent(c)
+	if err != nil {
+		return
+	}
+
 	tokenString := strings.TrimSpace(c.GetHeader("Authorization"))
 	if tokenString == "" {
 		utils.Logger.Error("Token not provided")
@@ -388,7 +394,6 @@ func SignOut(c *gin.Context) {
 	//takes query parameters
 	allParam := c.DefaultQuery("all", "false")
 	all, err := strconv.ParseBool(allParam)
-	//Check whether user is present or not in db to chng password
 
 	if err != nil {
 		utils.Logger.Error("Invalid query parameter for 'all'. It must be true or false", zap.Error(err), zap.Int64("userId", userId.(int64)))
@@ -400,16 +405,6 @@ func SignOut(c *gin.Context) {
 
 	}
 
-	//checks whether user is allready signout or not
-	err = dao.GetUserByIdFromTokenTable(userId.(int64))
-	if err != nil {
-		utils.Logger.Error("User not found allready logout", zap.Error(err), zap.Int64("userId", userId.(int64)))
-		c.Set("response", nil)
-		c.Set("message", "User not found allready logout")
-		c.Set("error", true)
-		c.Status(http.StatusNotFound)
-		return
-	}
 	//if all query param value is true
 
 	if all {
