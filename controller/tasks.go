@@ -106,3 +106,68 @@ func GetTask(c *gin.Context) {
 	c.Set("error", false)
 	c.Status(http.StatusOK)
 }
+
+// Fetch all tasks using query params also
+func GetTasksByQuery(c *gin.Context) {
+
+	err := middlewares.CheckTokenPresent(c)
+	if err != nil {
+		return
+	}
+
+	userId, exists := c.Get("userId")
+	if !exists {
+		utils.Logger.Warn("Unauthorized access attempt in getTasksByQuery")
+
+		c.Set("response", nil)
+		c.Set("message", "not authorized")
+		c.Set("error", true)
+		c.Status(http.StatusUnauthorized)
+		return
+	}
+
+	// Retrieve query parameters
+	sortOrder := c.DefaultQuery("sort", "asc") // Default sort order: ascending
+	completed := c.Query("completed")          // Optional filter
+
+	// Pagination parameters
+	page, err := strconv.Atoi(c.DefaultQuery("page", "1")) // Default page: 1
+	if err != nil || page < 1 {
+		utils.Logger.Warn("Invalid page parameter", zap.String("page", c.DefaultQuery("page", "1")), zap.Error(err))
+		page = 1
+	}
+
+	limit, err := strconv.Atoi(c.DefaultQuery("limit", "5")) // Default limit: 5
+	if err != nil || limit < 1 {
+		utils.Logger.Warn("Invalid limit parameter", zap.String("limit", c.DefaultQuery("limit", "5")), zap.Error(err))
+		limit = 5
+	}
+
+	offset := (page - 1) * limit
+
+	// Fetch tasks with filters, sorting, and pagination
+	tasks, totalTasks, err := dao.GetTasksWithFilters(userId.(int64), sortOrder, completed, limit, offset)
+	if err != nil {
+		utils.Logger.Error("Failed to get tasks", zap.Int64("userId", userId.(int64)), zap.Error(err))
+
+		c.Set("response", nil)
+		c.Set("message", "could not fetch tasks")
+		c.Set("error", true)
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	// Calculate total pages
+	totalPages := (totalTasks + int64(limit) - 1) / int64(limit)
+
+	// Respond with tasks and pagination metadata
+	utils.Logger.Info("Tasks fetched successfully", zap.Int64("userId", userId.(int64)), zap.String("sortOrder", sortOrder), zap.String("completed", completed), zap.Int("page", page), zap.Int("limit", limit), zap.Int("totalPages", int(totalPages)))
+
+	c.Set("response", gin.H{
+		"tasks":       tasks,
+		"totalPages":  totalPages,
+		"currentPage": page})
+	c.Set("message", "task fetched successfully")
+	c.Set("error", false)
+	c.Status(http.StatusOK)
+}
