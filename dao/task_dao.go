@@ -7,7 +7,7 @@ import (
 	"go.uber.org/zap"
 )
 
-//save task in db
+// save task in db
 func SaveTask(t *models.Task) error {
 	result := DB.Create(&t)
 	if result.Error != nil {

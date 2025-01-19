@@ -33,7 +33,7 @@ func ResponseFormatter() gin.HandlerFunc {
 	}
 }
 
-// authentication middleware
+// Checks whether the user is authenticated to perform the action
 func Authenticate(c *gin.Context) {
 	token := c.Request.Header.Get("Authorization")
 
@@ -60,7 +60,7 @@ func Authenticate(c *gin.Context) {
 	c.Next()
 }
 
-// check token in db
+// checks whether user is signin or not
 func CheckTokenPresent(c *gin.Context) error {
 	token := c.Request.Header.Get("Authorization")
 	token = strings.TrimPrefix(token, "Bearer ")

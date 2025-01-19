@@ -40,10 +40,28 @@ type Login struct {
 	User     User `gorm:"foreignKey:UserID"`
 }
 
+// Avatar DB schema
+type Avatar struct {
+	ID     int64  `gorm:"primaryKey;autoIncrement"`
+	Data   []byte `gorm:"type:blob;not null"`
+	Name   string `gorm:"not null"`
+	UserID int64
+	User   User `gorm:"foreignKey:UserID"`
+}
+
+// Task DB schema
+type Task struct {
+	ID          int64  `json:"id"`
+	Title       string ` json:"title" `
+	Description string `json:"description" `
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	Completed   string `json:"completed" binding:"required"`
+	UserID      int64  ` json:"userId"`
+}
+
 func InitDB() {
 	var err error
-
-
 
 	DB, err = gorm.Open(mysql.Open(os.Getenv("DB_URL")), &gorm.Config{})
 	if err != nil {
@@ -54,7 +72,7 @@ func InitDB() {
 }
 
 func createTables() {
-	err := DB.AutoMigrate(&User{}, &Login{}, &Token{})
+	err := DB.AutoMigrate(&User{}, &Login{}, &Token{}, &Avatar{}, &Task{})
 	if err != nil {
 		utils.Logger.Fatal("could not migrate tables", zap.Error(err))
 	}
