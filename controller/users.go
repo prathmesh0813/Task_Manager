@@ -2,6 +2,7 @@ package controller
 
 import (
 	"net/http"
+	"strconv"
 
 	"task_manager/dao"
 	"task_manager/middlewares"
@@ -163,7 +164,7 @@ func SignIn(c *gin.Context) {
 // Fetch the user details
 func GetUser(c *gin.Context) {
 
-	////checks whether user is signin or not
+	//checks whether user is signin or not
 	err := middlewares.CheckTokenPresent(c)
 	if err != nil {
 		return
@@ -190,6 +191,7 @@ func GetUser(c *gin.Context) {
 		return
 	}
 
+	user.Avatar = "/user/avatar/" + strconv.FormatInt(userId.(int64), 10)
 	utils.Logger.Info("User Fetch successfully", zap.Error(err), zap.Int64("userId", userId.(int64)))
 	c.Set("response", gin.H{"user": user})
 	c.Set("message", "User Fetch successfully")

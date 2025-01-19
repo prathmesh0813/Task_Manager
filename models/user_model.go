@@ -18,11 +18,11 @@ type Login struct {
 	UserID   int64
 }
 
-
-//Response struct for Userdetails
+// Response struct for Userdetails
 type UserResponse struct {
 	Name      string
 	Mobile_No int64
 	Gender    string
 	Email     string
+	Avatar    string
 }
