@@ -78,3 +78,17 @@ func ValidateCredentials(u *models.Login) error {
 	u.ID = login.ID
 	return nil
 }
+
+
+//Fetches user details from db
+func GetUserById(uid int64) (*models.UserResponse, error) {
+
+	var user models.UserResponse
+	result := DB.Model(User{}).Select("name, mobile_no, gender, email ").Where("id =?", uid).First(&user)
+	if result.Error != nil {
+		utils.Logger.Error("Failed to fetch user by id", zap.Error(result.Error), zap.Int64("userId", uid))
+		return nil, result.Error
+	}
+	utils.Logger.Info("Fetched Task by id successfully", zap.Int64("userId", uid))
+	return &user, nil
+}

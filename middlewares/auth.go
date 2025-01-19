@@ -12,6 +12,7 @@ import (
 )
 
 // Set the response in gin context
+// Set the response in gin context
 func ResponseFormatter() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Next()
@@ -32,7 +33,7 @@ func ResponseFormatter() gin.HandlerFunc {
 	}
 }
 
-//authentication middleware
+// authentication middleware
 func Authenticate(c *gin.Context) {
 	token := c.Request.Header.Get("Authorization")
 
@@ -59,7 +60,7 @@ func Authenticate(c *gin.Context) {
 	c.Next()
 }
 
-//check token in db
+// check token in db
 func CheckTokenPresent(c *gin.Context) error {
 	token := c.Request.Header.Get("Authorization")
 	token = strings.TrimPrefix(token, "Bearer ")

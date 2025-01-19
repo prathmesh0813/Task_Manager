@@ -3,9 +3,10 @@ package controller
 import (
 	"net/http"
 
+	"task_manager/dao"
+	"task_manager/middlewares"
 	"task_manager/models"
 	"task_manager/utils"
-	"task_manager/dao"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -139,7 +140,7 @@ func SignIn(c *gin.Context) {
 		return
 	}
 
-	//save token in db
+	//save pair of token
 	err = dao.SaveToken(login.ID, userToken, refreshToken)
 	if err != nil {
 		utils.Logger.Error("Failed to save token", zap.Int64("userId", login.ID), zap.Error(err))
@@ -157,4 +158,42 @@ func SignIn(c *gin.Context) {
 	c.Set("message", "user sign in successfully")
 	c.Set("error", false)
 	c.Status(http.StatusCreated)
+}
+
+// Fetch the user details
+func GetUser(c *gin.Context) {
+
+	////checks whether user is signin or not
+	err := middlewares.CheckTokenPresent(c)
+	if err != nil {
+		return
+	}
+
+	userId, exists := c.Get("userId")
+	if !exists {
+		utils.Logger.Warn("Unauthorized.User not authenticated", zap.Error(err), zap.Int64("userId", userId.(int64)))
+		c.Set("response", nil)
+		c.Set("message", "Unauthorized.User not authenticated")
+		c.Set("error", true)
+		c.Status(http.StatusUnauthorized)
+		return
+	}
+
+	//Get user by ID
+	user, err := dao.GetUserById(userId.(int64))
+	if err != nil {
+		utils.Logger.Error("Could not fetch user", zap.Error(err), zap.Int64("userId", userId.(int64)))
+		c.Set("response", nil)
+		c.Set("message", "Could not fetch user")
+		c.Set("error", true)
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	utils.Logger.Info("User Fetch successfully", zap.Error(err), zap.Int64("userId", userId.(int64)))
+	c.Set("response", gin.H{"user": user})
+	c.Set("message", "User Fetch successfully")
+	c.Set("error", false)
+	c.Status(http.StatusOK)
+
 }

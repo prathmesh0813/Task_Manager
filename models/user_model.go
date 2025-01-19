@@ -17,3 +17,12 @@ type Login struct {
 	Password string `json:"password"`
 	UserID   int64
 }
+
+
+//Response struct for Userdetails
+type UserResponse struct {
+	Name      string
+	Mobile_No int64
+	Gender    string
+	Email     string
+}

@@ -31,7 +31,7 @@ func GenerateRefreshToken(userId int64) (string, error) {
 	return token.SignedString([]byte(os.Getenv("JWT_REF_SEC")))
 }
 
-//verify user token
+// verify user token
 func VerifyJwtToken(token string) (int64, error) {
 	parsedToken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
 
