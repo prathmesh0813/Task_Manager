@@ -14,7 +14,7 @@ func UserRoutes(server *gin.Engine) {
 	route.POST("/signin", controller.SignIn, middlewares.ResponseFormatter())
 
 	route.Use(middlewares.ResponseFormatter())
-	route.GET("/", middlewares.Authenticate, controller.GetUser)
+	route.GET("", middlewares.Authenticate, controller.GetUser)
 	route.POST("/avatar", middlewares.Authenticate, controller.UploadAvatar)
 
 }

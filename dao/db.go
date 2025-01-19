@@ -1,11 +1,12 @@
 package dao
 
 import (
+	"os"
 	"task_manager/utils"
 	"time"
 
 	"go.uber.org/zap"
-	"gorm.io/driver/sqlite"
+	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
@@ -48,15 +49,21 @@ type Avatar struct {
 	User   User `gorm:"foreignKey:UserID"`
 }
 
+// Task DB schema
+type Task struct {
+	ID          int64  `json:"id"`
+	Title       string ` json:"title" `
+	Description string `json:"description" `
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	Completed   string `json:"completed" binding:"required"`
+	UserID      int64  ` json:"userId"`
+}
+
 func InitDB() {
 	var err error
 
-	// DB, err = gorm.Open(mysql.Open(os.Getenv("DB_URL")), &gorm.Config{})
-	// if err != nil {
-	// 	utils.Logger.Fatal("Could not connect to database", zap.Error(err))
-	// }
-
-	DB, err = gorm.Open(sqlite.Open("task.db"), &gorm.Config{})
+	DB, err = gorm.Open(mysql.Open(os.Getenv("DB_URL")), &gorm.Config{})
 	if err != nil {
 		utils.Logger.Fatal("Could not connect to database", zap.Error(err))
 	}
@@ -65,7 +72,7 @@ func InitDB() {
 }
 
 func createTables() {
-	err := DB.AutoMigrate(&User{}, &Login{}, &Token{}, &Avatar{})
+	err := DB.AutoMigrate(&User{}, &Login{}, &Token{}, &Avatar{}, &Task{})
 	if err != nil {
 		utils.Logger.Fatal("could not migrate tables", zap.Error(err))
 	}

@@ -32,7 +32,7 @@ func ResponseFormatter() gin.HandlerFunc {
 	}
 }
 
-//Checks whether the user is authenticated to perform the action
+// Checks whether the user is authenticated to perform the action
 func Authenticate(c *gin.Context) {
 	token := c.Request.Header.Get("Authorization")
 	if token == "" {
@@ -56,8 +56,7 @@ func Authenticate(c *gin.Context) {
 	c.Next()
 }
 
-
-//checks whether user is signin or not
+// checks whether user is signin or not
 func CheckTokenPresent(c *gin.Context) error {
 	token := c.Request.Header.Get("Authorization")
 

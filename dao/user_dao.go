@@ -79,8 +79,7 @@ func ValidateCredentials(u *models.Login) error {
 	return nil
 }
 
-
-//Fetches user details from db
+// Fetches user details from db
 func GetUserById(uid int64) (*models.UserResponse, error) {
 
 	var user models.UserResponse
