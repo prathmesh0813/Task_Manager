@@ -18,3 +18,16 @@ func SaveTask(t *models.Task) error {
 	utils.Logger.Info("Task saved successfully", zap.Int64("taskId", t.ID))
 	return nil
 }
+
+//fetch rask by id
+func GetTaskByID(id, userId int64) (*Task, error) {
+	var task Task
+	result := DB.Where("id = ? AND user_id = ?", id, userId).First(&task)
+	if result.Error != nil {
+		utils.Logger.Error("Failed to fetch task by id", zap.Error(result.Error), zap.Int64("taskId", id))
+		return &Task{}, result.Error
+	}
+
+	utils.Logger.Info("Task fetched by id successfully", zap.Int64("taskId", id), zap.Int64("userId", userId))
+	return &task, nil
+}
