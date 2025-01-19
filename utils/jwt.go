@@ -12,9 +12,13 @@ import (
 // generates user token
 func GenerateJwtToken(userId int64) (string, error) {
 
+	expDuration := os.Getenv("JWT_EXP_DURATION")
+	duration, _ := time.ParseDuration(expDuration)
+	expTime := time.Now().Add(duration).Unix()
+
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"userId": userId,
-		"exp":    time.Now().Add(time.Minute * 5).Unix(),
+		"exp":    expTime,
 	})
 
 	return token.SignedString([]byte(os.Getenv("JWT_SEC")))
@@ -23,9 +27,13 @@ func GenerateJwtToken(userId int64) (string, error) {
 // generate refresh token
 func GenerateRefreshToken(userId int64) (string, error) {
 
+	expDuration := os.Getenv("REF_EXP_DURATION")
+	duration, _ := time.ParseDuration(expDuration)
+	expTime := time.Now().Add(duration).Unix()
+
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"userId": userId,
-		"exp":    time.Now().Add(time.Hour * 2).Unix(),
+		"exp":    expTime,
 	})
 
 	return token.SignedString([]byte(os.Getenv("JWT_REF_SEC")))
