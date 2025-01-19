@@ -43,6 +43,8 @@ type Login struct {
 func InitDB() {
 	var err error
 
+
+
 	DB, err = gorm.Open(mysql.Open(os.Getenv("DB_URL")), &gorm.Config{})
 	if err != nil {
 		utils.Logger.Fatal("Could not connect to database", zap.Error(err))

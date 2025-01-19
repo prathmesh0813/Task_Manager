@@ -12,5 +12,9 @@ func UserRoutes(server *gin.Engine) {
 
 	route.POST("/signup", controller.SignUp, middlewares.ResponseFormatter())
 	route.POST("/signin", controller.SignIn, middlewares.ResponseFormatter())
-	
+
+	authenticated := server.Group("/")
+	authenticated.Use(middlewares.Authenticate, middlewares.ResponseFormatter())
+	authenticated.GET("/user", controller.GetUser)
+
 }
