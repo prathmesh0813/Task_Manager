@@ -136,7 +136,7 @@ func GetUserByIdPassChng(uid int64) (*Login, error) {
 	return &login, nil
 }
 
-//Update password in DB
+// Update password in DB
 func UpdatePassById(uid int64, password string) error {
 	if err := DB.Model(&Login{}).Where("user_id = ?", uid).Update("password", password).Error; err != nil {
 		utils.Logger.Error("Password not updated", zap.Error(err), zap.Int64("userid", uid))
@@ -146,7 +146,7 @@ func UpdatePassById(uid int64, password string) error {
 	return nil
 }
 
-//Delete all the tokens from DB except the token which user is login
+// Delete all the tokens from DB except the token which user is login
 func DeleteTokenById(uid int64, tokenString string) error {
 
 	var token Token
@@ -162,5 +162,48 @@ func DeleteTokenById(uid int64, tokenString string) error {
 		return result.Error
 	}
 	utils.Logger.Info("User token deleted", zap.Int64("UserId", uid))
+	return nil
+}
+
+// signout all the users
+func SignOutAllUsers(uid int64) error {
+	var token Token
+
+	result := DB.Where("user_id = ?", uid).Delete(&token)
+
+	if result.Error != nil {
+		utils.Logger.Error("User not found", zap.Error(result.Error), zap.Int64("userId", uid))
+		return result.Error
+	}
+	utils.Logger.Info("Delete all users", zap.Int64("userId", uid))
+	return nil
+}
+
+// Signout single user
+func DeleteToken(tokenString string) error {
+
+	var token Token
+
+	if err := DB.Where("user_token = ? ", tokenString).First(&token).Error; err != nil {
+		utils.Logger.Error("User token not found ", zap.Error(err), zap.String("token", tokenString))
+		return err
+	}
+
+	if err := DB.Delete(&token).Error; err != nil {
+		utils.Logger.Error("User token not deleted ", zap.Error(err), zap.String("token", tokenString))
+		return err
+	}
+	utils.Logger.Info("User token deleted", zap.String("token", tokenString))
+	return nil
+}
+
+// Fetches the user from Token DB
+func GetUserByIdFromTokenTable(uid int64) error {
+	var token Token
+	if err := DB.Where("id = ?", uid).First(&token).Error; err != nil {
+		utils.Logger.Error("User not found", zap.Error(err), zap.Int64("userId", uid))
+		return err
+	}
+	utils.Logger.Info("User fetch successfully", zap.Int64("userId", uid))
 	return nil
 }

@@ -257,7 +257,7 @@ func UpdateUser(c *gin.Context) {
 
 }
 
-//Update password
+// Update password
 func UpdatePassword(c *gin.Context) {
 	var req models.UpdatePasswordRequest
 	err := middlewares.CheckTokenPresent(c)
@@ -287,7 +287,6 @@ func UpdatePassword(c *gin.Context) {
 		c.Status(http.StatusBadRequest)
 		return
 	}
-
 
 	//Validate whether enter password is in correct format or not
 	err = utils.ValidatePassword(req.NewPassword)
@@ -361,4 +360,89 @@ func UpdatePassword(c *gin.Context) {
 	c.Set("error", false)
 	c.Status(http.StatusOK)
 
+}
+
+// Signout user
+func SignOut(c *gin.Context) {
+	tokenString := strings.TrimSpace(c.GetHeader("Authorization"))
+	if tokenString == "" {
+		utils.Logger.Error("Token not provided")
+		c.Set("response", nil)
+		c.Set("message", "Token not provided")
+		c.Set("error", true)
+		c.Status(http.StatusUnauthorized)
+		return
+	}
+	userId, exists := c.Get("userId")
+	if !exists {
+		utils.Logger.Warn("Unauthorized.User not authenticated", zap.Int64("userId", userId.(int64)))
+		c.Set("response", nil)
+		c.Set("message", "Unauthorized.User not authenticated")
+		c.Set("error", true)
+		c.Status(http.StatusUnauthorized)
+		return
+	}
+
+	tokenString = strings.TrimPrefix(tokenString, "Bearer ")
+
+	//takes query parameters
+	allParam := c.DefaultQuery("all", "false")
+	all, err := strconv.ParseBool(allParam)
+	//Check whether user is present or not in db to chng password
+
+	if err != nil {
+		utils.Logger.Error("Invalid query parameter for 'all'. It must be true or false", zap.Error(err), zap.Int64("userId", userId.(int64)))
+		c.Set("response", nil)
+		c.Set("message", "Invalid query parameter for 'all'. It must be true or false")
+		c.Set("error", true)
+		c.Status(http.StatusBadRequest)
+		return
+
+	}
+
+	//checks whether user is allready signout or not
+	err = dao.GetUserByIdFromTokenTable(userId.(int64))
+	if err != nil {
+		utils.Logger.Error("User not found allready logout", zap.Error(err), zap.Int64("userId", userId.(int64)))
+		c.Set("response", nil)
+		c.Set("message", "User not found allready logout")
+		c.Set("error", true)
+		c.Status(http.StatusNotFound)
+		return
+	}
+	//if all query param value is true
+
+	if all {
+		//signout all users
+		err = dao.SignOutAllUsers(userId.(int64))
+		if err != nil {
+			utils.Logger.Error("Failed to signout from all devices", zap.Error(err), zap.Int64("userId", userId.(int64)))
+			c.Set("response", nil)
+			c.Set("message", "Failed to signout from all devices")
+			c.Set("error", true)
+			c.Status(http.StatusBadRequest)
+		}
+		utils.Logger.Info("Signout from all devices is successfully", zap.Int64("userId", userId.(int64)))
+		c.Set("response", nil)
+		c.Set("message", "Signout from all devices is successfully")
+		c.Set("error", false)
+		c.Status(http.StatusOK)
+	} else {
+		//Sign out single user if all query param value is false
+		err = dao.DeleteToken(tokenString)
+		if err != nil {
+			utils.Logger.Error("Failed to signout", zap.Error(err), zap.Int64("userId", userId.(int64)))
+			c.Set("response", nil)
+			c.Set("message", "Failed to signout")
+			c.Set("error", true)
+			c.Status(http.StatusBadRequest)
+			return
+		}
+
+		utils.Logger.Info("User sign out successfully", zap.Int64("userId", userId.(int64)))
+		c.Set("response", nil)
+		c.Set("message", "User sign out successfully")
+		c.Set("error", false)
+		c.Status(http.StatusOK)
+	}
 }

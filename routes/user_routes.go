@@ -20,4 +20,6 @@ func UserRoutes(server *gin.Engine) {
 	route.POST("/refresh", controller.RefreshTokenHandler, middlewares.ResponseFormatter())
 	route.PUT("/updateuser", middlewares.Authenticate, controller.UpdateUser, middlewares.ResponseFormatter())
 	route.PUT("/updatepassword", middlewares.Authenticate, controller.UpdatePassword, middlewares.ResponseFormatter())
+	route.DELETE("/signout", middlewares.Authenticate, controller.SignOut, middlewares.ResponseFormatter())
+
 }
