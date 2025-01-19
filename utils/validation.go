@@ -60,8 +60,7 @@ func ValidateDetails(name, email string, mobile int64, gender, password, confirm
 
 }
 
-
-//Validated user details
+// Validated user details
 func ValidateUser(name string, mobileno int64) error {
 	// Validate name
 	if len(name) < 2 {
@@ -78,5 +77,32 @@ func ValidateUser(name string, mobileno int64) error {
 		return errors.New("mobile number must be 10 digits")
 	}
 
+	return nil
+}
+
+
+//Validate password
+func ValidatePassword(password string) error {
+	var hasUpper, hasLower, hasDigit, hasSpecial bool
+	for _, char := range password {
+		switch {
+		case unicode.IsUpper(char):
+			hasUpper = true
+		case unicode.IsLower(char):
+			hasLower = true
+		case unicode.IsDigit(char):
+			hasDigit = true
+		case unicode.IsPunct(char) || unicode.IsSymbol(char):
+			hasSpecial = true
+		}
+	}
+
+	if len(password) < 8 {
+		return errors.New("password must be at least 8 characters long")
+	}
+	if !hasUpper || !hasLower || !hasDigit || !hasSpecial {
+
+		return errors.New("password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character")
+	}
 	return nil
 }

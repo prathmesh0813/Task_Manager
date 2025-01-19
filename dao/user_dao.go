@@ -124,3 +124,43 @@ func UpdateUserDetails(uid int64, req models.UpdateUserRequest) error {
 	return nil
 
 }
+
+// Fetches the user from DB
+func GetUserByIdPassChng(uid int64) (*Login, error) {
+	var login Login
+	if err := DB.Where("id = ?", uid).First(&login).Error; err != nil {
+		utils.Logger.Error("User not found", zap.Error(err), zap.Int64("userId", uid))
+		return nil, err
+	}
+	utils.Logger.Info("User fetch successfully", zap.Int64("userId", uid))
+	return &login, nil
+}
+
+//Update password in DB
+func UpdatePassById(uid int64, password string) error {
+	if err := DB.Model(&Login{}).Where("user_id = ?", uid).Update("password", password).Error; err != nil {
+		utils.Logger.Error("Password not updated", zap.Error(err), zap.Int64("userid", uid))
+		return err
+	}
+	utils.Logger.Info("Password updated successfully", zap.Int64("UserId", uid))
+	return nil
+}
+
+//Delete all the tokens from DB except the token which user is login
+func DeleteTokenById(uid int64, tokenString string) error {
+
+	var token Token
+
+	result := DB.Where("user_id = ? AND user_token != ?", uid, tokenString).Delete(&token)
+
+	if result.RowsAffected == 0 {
+		return nil
+	}
+
+	if result.Error != nil {
+		utils.Logger.Error("User token not deleted ", zap.Error(result.Error), zap.Int64("userid", uid))
+		return result.Error
+	}
+	utils.Logger.Info("User token deleted", zap.Int64("UserId", uid))
+	return nil
+}

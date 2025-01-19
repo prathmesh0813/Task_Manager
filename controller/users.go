@@ -3,6 +3,7 @@ package controller
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
 	"task_manager/dao"
 	"task_manager/middlewares"
@@ -200,7 +201,7 @@ func GetUser(c *gin.Context) {
 
 }
 
-//Updates user details
+// Updates user details
 func UpdateUser(c *gin.Context) {
 	var req models.UpdateUserRequest
 	err := middlewares.CheckTokenPresent(c)
@@ -251,6 +252,112 @@ func UpdateUser(c *gin.Context) {
 	utils.Logger.Info("User details updated successfully", zap.Int64("userId", userId.(int64)))
 	c.Set("response", nil)
 	c.Set("message", "User details updated successfully")
+	c.Set("error", false)
+	c.Status(http.StatusOK)
+
+}
+
+//Update password
+func UpdatePassword(c *gin.Context) {
+	var req models.UpdatePasswordRequest
+	err := middlewares.CheckTokenPresent(c)
+	if err != nil {
+		return
+	}
+
+	token := c.Request.Header.Get("Authorization")
+
+	token = strings.TrimPrefix(token, "Bearer ")
+
+	userIdFromToken, exists := c.Get("userId")
+	if !exists {
+		utils.Logger.Warn("Unauthorized.User not authenticated", zap.Error(err), zap.Int64("userId", userIdFromToken.(int64)))
+		c.Set("response", nil)
+		c.Set("message", "Unauthorized.User not authenticated")
+		c.Set("error", true)
+		c.Status(http.StatusUnauthorized)
+		return
+	}
+	// Bind JSON request to struct
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.Logger.Error("Invalid request body", zap.Error(err), zap.Int64("userId", userIdFromToken.(int64)))
+		c.Set("response", nil)
+		c.Set("message", "Invalid request body")
+		c.Set("error", true)
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
+
+	//Validate whether enter password is in correct format or not
+	err = utils.ValidatePassword(req.NewPassword)
+	if err != nil {
+		utils.Logger.Error("Credentials are not validate", zap.Error(err), zap.Int64("userId", userIdFromToken.(int64)))
+		c.Set("response", nil)
+		c.Set("message", err.Error())
+		c.Set("error", true)
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
+	//Check whether user is present or not in db to chng password
+	user, err := dao.GetUserByIdPassChng(userIdFromToken.(int64))
+	if err != nil {
+		utils.Logger.Error("User not found", zap.Error(err), zap.Int64("userId", userIdFromToken.(int64)))
+		c.Set("response", nil)
+		c.Set("message", "User not found")
+		c.Set("error", true)
+		c.Status(http.StatusNotFound)
+		return
+	}
+
+	//checks the user enter old password is correct with password hash which is present in DB
+	passwordIsValid := utils.CheckPasswordHash(req.OldPassword, user.Password)
+	if !passwordIsValid {
+		utils.Logger.Error("Incorrect old password", zap.Error(err), zap.Int64("userId", userIdFromToken.(int64)))
+		c.Set("response", nil)
+		c.Set("message", "Incorrect old password")
+		c.Set("error", true)
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
+	//Hash the new password
+	hashedPassword, err := utils.HashPassword(req.NewPassword)
+	if err != nil {
+		utils.Logger.Error("Failed to hashed password", zap.Error(err), zap.Int64("userId", userIdFromToken.(int64)))
+		c.Set("response", nil)
+		c.Set("message", "Failed to hashed password")
+		c.Set("error", true)
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	//Update password by userId
+	err = dao.UpdatePassById(userIdFromToken.(int64), hashedPassword)
+	if err != nil {
+		utils.Logger.Error("Failed to update password", zap.Error(err), zap.Int64("userId", userIdFromToken.(int64)))
+		c.Set("response", nil)
+		c.Set("message", "Failed to update password")
+		c.Set("error", true)
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	//Signout all other user except the user which updates the password
+	err = dao.DeleteTokenById(userIdFromToken.(int64), token)
+	if err != nil {
+		utils.Logger.Error("Failed to delete token", zap.Error(err), zap.Int64("userId", userIdFromToken.(int64)))
+		c.Set("response", nil)
+		c.Set("message", "Failed to delete token")
+		c.Set("error", true)
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	utils.Logger.Info("Password Updated Successfully.", zap.Int64("userId", userIdFromToken.(int64)))
+	c.Set("response", nil)
+	c.Set("message", "Password Updated Successfully.")
 	c.Set("error", false)
 	c.Status(http.StatusOK)
 
