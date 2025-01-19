@@ -246,3 +246,63 @@ func UpdateTask(c *gin.Context) {
 	c.Set("error", false)
 	c.Status(http.StatusOK)
 }
+
+// delete task
+func DeleteTask(c *gin.Context) {
+	err := middlewares.CheckTokenPresent(c)
+	if err != nil {
+		return
+	}
+
+	taskId, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		utils.Logger.Error("Failed to parse task ID", zap.String("param", c.Param("id")), zap.Error(err))
+
+		c.Set("response", nil)
+		c.Set("message", "could not parse data")
+		c.Set("error", true)
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
+	userID := c.GetInt64("userId")
+
+	task, err := dao.GetTaskByID(taskId, userID)
+	if err != nil {
+		utils.Logger.Error("Failed to fetch task for deletion", zap.Int64("taskId", taskId), zap.Int64("userId", userID), zap.Error(err))
+
+		c.Set("response", nil)
+		c.Set("message", "could not fetch task")
+		c.Set("error", true)
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	if task.UserID != userID {
+		utils.Logger.Warn("User not authorized to delete task", zap.Int64("taskId", taskId), zap.Int64("userId", userID))
+
+		c.Set("response", nil)
+		c.Set("message", "not authorized to delete")
+		c.Set("error", true)
+		c.Status(http.StatusUnauthorized)
+		return
+	}
+	
+	err = dao.Delete(task)
+	if err != nil {
+		utils.Logger.Error("Failed to delete task", zap.Int64("taskId", taskId), zap.Error(err))
+
+		c.Set("response", nil)
+		c.Set("message", "could not delete task")
+		c.Set("error", true)
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	utils.Logger.Info("Task deleted successfully", zap.Int64("taskId", taskId), zap.Int64("userId", userID))
+	
+	c.Set("response", nil)
+	c.Set("message", "task deleted successfully")
+	c.Set("error", false)
+	c.Status(http.StatusOK)
+}

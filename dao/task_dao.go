@@ -21,12 +21,12 @@ func SaveTask(t *models.Task) error {
 }
 
 // fetch rask by id
-func GetTaskByID(id, userId int64) (*Task, error) {
-	var task Task
+func GetTaskByID(id, userId int64) (*models.Task, error) {
+	var task models.Task
 	result := DB.Where("id = ? AND user_id = ?", id, userId).First(&task)
 	if result.Error != nil {
 		utils.Logger.Error("Failed to fetch task by id", zap.Error(result.Error), zap.Int64("taskId", id))
-		return &Task{}, result.Error
+		return &task, result.Error
 	}
 
 	utils.Logger.Info("Task fetched by id successfully", zap.Int64("taskId", id), zap.Int64("userId", userId))
@@ -73,4 +73,16 @@ func Update(t *models.Task) error {
 
 	utils.Logger.Info("Task updated successfully", zap.Int64("taskId", t.ID))
 	return result.Error
+}
+
+// delete task in db
+func Delete(t *models.Task) error {
+	result := DB.Delete(t)
+	if result.Error != nil {
+		utils.Logger.Error("Failed to delete task", zap.Error(result.Error), zap.Int64("taskId", t.ID))
+		return result.Error
+	}
+
+	utils.Logger.Info("Task deleted successfully", zap.Int64("taskId", t.ID))
+	return nil
 }
