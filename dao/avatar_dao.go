@@ -6,7 +6,7 @@ import (
 	"gorm.io/gorm"
 )
 
-//Fetch the avatar 
+// Fetch the avatar
 func ReadAvatar(uid int64) (*Avatar, error) {
 
 	var avatar Avatar
@@ -16,7 +16,7 @@ func ReadAvatar(uid int64) (*Avatar, error) {
 	return &avatar, nil
 }
 
-//Update the avatar DB
+// Update the avatar DB
 func UpdateAvatar(uid int64, content []byte) error {
 	var existingAvatar Avatar
 	result := DB.Where("user_id = ?", uid).First(&existingAvatar)
@@ -40,7 +40,7 @@ func UpdateAvatar(uid int64, content []byte) error {
 	return nil
 }
 
-//save avatar in DB
+// save avatar in DB
 func SaveAvatar(uid int64, content []byte, fileName string) error {
 
 	avatar := Avatar{
@@ -56,7 +56,7 @@ func SaveAvatar(uid int64, content []byte, fileName string) error {
 	return nil
 }
 
-//delete user avatar
+// delete user avatar
 func DeleteAvatar(uid int64) error {
 	var avatar Avatar
 

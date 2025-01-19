@@ -26,3 +26,9 @@ type UserResponse struct {
 	Email     string
 	Avatar    string
 }
+
+// Request struct to update user
+type UpdateUserRequest struct {
+	Name      string `json:"name" binding:"required"`
+	Mobile_No int64  `json:"mobile_no" binding:"required"`
+}

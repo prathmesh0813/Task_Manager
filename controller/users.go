@@ -199,3 +199,59 @@ func GetUser(c *gin.Context) {
 	c.Status(http.StatusOK)
 
 }
+
+//Updates user details
+func UpdateUser(c *gin.Context) {
+	var req models.UpdateUserRequest
+	err := middlewares.CheckTokenPresent(c)
+	if err != nil {
+		return
+	}
+	userId, exists := c.Get("userId")
+	if !exists {
+		utils.Logger.Warn("Unauthorized .User not authenticated", zap.Error(err), zap.Int64("userId", userId.(int64)))
+		c.Set("response", nil)
+		c.Set("message", "Unauthorized .User not authenticated")
+		c.Set("error", true)
+		c.Status(http.StatusUnauthorized)
+		return
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.Logger.Error("Invalid request body", zap.Error(err), zap.Int64("userId", userId.(int64)))
+		c.Set("response", nil)
+		c.Set("message", "Invalid request body")
+		c.Set("error", true)
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
+	//Validates the user details taken from user response to update details
+	err = utils.ValidateUser(req.Name, req.Mobile_No)
+	if err != nil {
+		utils.Logger.Error("Credentials are not validate", zap.Error(err), zap.Int64("userId", userId.(int64)))
+		c.Set("response", nil)
+		c.Set("message", err.Error())
+		c.Set("error", true)
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
+	//Updates user details
+	err = dao.UpdateUserDetails(userId.(int64), req)
+	if err != nil {
+		utils.Logger.Error("Failed to update user", zap.Error(err), zap.Int64("userId", userId.(int64)))
+		c.Set("response", nil)
+		c.Set("message", "Failed to update user")
+		c.Set("error", true)
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	utils.Logger.Info("User details updated successfully", zap.Int64("userId", userId.(int64)))
+	c.Set("response", nil)
+	c.Set("message", "User details updated successfully")
+	c.Set("error", false)
+	c.Status(http.StatusOK)
+
+}

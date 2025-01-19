@@ -185,7 +185,7 @@ func DeleteAvatar(c *gin.Context) {
 	}
 
 	utils.Logger.Info("avatar deleted successfully")
-	
+
 	c.Set("response", nil)
 	c.Set("message", "avatar deleted successfully")
 	c.Set("error", false)

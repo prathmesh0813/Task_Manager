@@ -10,7 +10,7 @@ import (
 // Validate avatar size and file extension
 func ValidateAvatar(fileheader *multipart.FileHeader) (string, error) {
 
-	if (fileheader.Size) > 1024*1024 {
+	if (fileheader.Size) > 100*1024 {
 
 		return "", errors.New("File size is too large, max 100 kb is allowed")
 	}

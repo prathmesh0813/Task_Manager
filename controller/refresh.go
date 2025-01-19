@@ -98,7 +98,7 @@ func RefreshTokenHandler(c *gin.Context) {
 	// Return the new access token to the client
 	utils.Logger.Info("token refreshed successfully")
 
-	c.Set("response",  gin.H{"refresh_token": newRefreshToken, "user_token": newUserToken})
+	c.Set("response", gin.H{"refresh_token": newRefreshToken, "user_token": newUserToken})
 	c.Set("message", "token refreshed successfully")
 	c.Set("error", false)
 	c.Status(http.StatusOK)

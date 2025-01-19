@@ -79,7 +79,7 @@ func ValidateCredentials(u *models.Login) error {
 	return nil
 }
 
-// Fetches user details from db
+// Fetches user details from DB
 func GetUserById(uid int64) (*models.UserResponse, error) {
 
 	var user models.UserResponse
@@ -107,4 +107,20 @@ func DeleteRefreshToken(tokenString string) error {
 
 	utils.Logger.Info("Refresh Token deleted successfully")
 	return nil
+}
+
+// Updates user details in DB
+func UpdateUserDetails(uid int64, req models.UpdateUserRequest) error {
+
+	result := DB.Model(&User{}).Where("id = ?", uid).Updates(map[string]interface{}{
+		"name":      req.Name,
+		"mobile_no": req.Mobile_No,
+	})
+	if result.Error != nil {
+		utils.Logger.Error("User not updated ", zap.Error(result.Error), zap.Int64("userid", uid))
+		return result.Error
+	}
+	utils.Logger.Info("User updated successfully", zap.Int64("UserId", uid))
+	return nil
+
 }

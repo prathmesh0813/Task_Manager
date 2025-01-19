@@ -59,3 +59,24 @@ func ValidateDetails(name, email string, mobile int64, gender, password, confirm
 	return nil
 
 }
+
+
+//Validated user details
+func ValidateUser(name string, mobileno int64) error {
+	// Validate name
+	if len(name) < 2 {
+		return errors.New("name must be at least 2 characters long")
+	}
+	if !regexp.MustCompile(`^[a-zA-Z\s]+$`).MatchString(name) {
+		return errors.New("name must contain only alphabets and spaces")
+	}
+
+	// Validate mobile
+
+	mobileStr := strconv.FormatInt(mobileno, 10)
+	if len(mobileStr) != 10 || !regexp.MustCompile(`^\d{10}$`).Match([]byte(mobileStr)) {
+		return errors.New("mobile number must be 10 digits")
+	}
+
+	return nil
+}
