@@ -16,5 +16,5 @@ func UserRoutes(server *gin.Engine) {
 	route.GET("", middlewares.Authenticate, controller.GetUser, middlewares.ResponseFormatter())
 	route.POST("/avatar", middlewares.Authenticate, controller.UploadAvatar, middlewares.ResponseFormatter())
 	route.GET("/avatar/:id", controller.ReadAvatar, middlewares.ResponseFormatter())
-
+	route.DELETE("/avatar", middlewares.Authenticate, controller.DeleteAvatar, middlewares.ResponseFormatter())
 }

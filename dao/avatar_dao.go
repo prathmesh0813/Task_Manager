@@ -55,3 +55,18 @@ func SaveAvatar(uid int64, content []byte, fileName string) error {
 
 	return nil
 }
+
+//delete user avatar
+func DeleteAvatar(uid int64) error {
+	var avatar Avatar
+
+	result := DB.Where("user_id = ?", uid).Delete(&avatar)
+	if result.RowsAffected == 0 {
+		return nil
+	}
+
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
+}

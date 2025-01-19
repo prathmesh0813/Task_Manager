@@ -143,3 +143,51 @@ func ReadAvatar(c *gin.Context) {
 	utils.Logger.Info("avatar fetched successfully")
 	c.Data(http.StatusOK, "image/jpg", avatar.Data)
 }
+
+// delete user avatar
+func DeleteAvatar(c *gin.Context) {
+	err := middlewares.CheckTokenPresent(c)
+	if err != nil {
+		return
+	}
+
+	userId, exists := c.Get("userId")
+	if !exists {
+		utils.Logger.Error("User ID not found in context", zap.String("context", "userId"))
+
+		c.Set("response", nil)
+		c.Set("message", "unauthorized, user not authenticated")
+		c.Set("error", true)
+		c.Status(http.StatusUnauthorized)
+		return
+	}
+
+	_, err = dao.ReadAvatar(userId.(int64))
+	if err != nil {
+		utils.Logger.Error("failed to read avatar", zap.Error(err))
+
+		c.Set("response", nil)
+		c.Set("message", "no avatar present to delete")
+		c.Set("error", true)
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	err = dao.DeleteAvatar(userId.(int64))
+	if err != nil {
+		utils.Logger.Error("failed to delete avatar", zap.Error(err))
+
+		c.Set("response", nil)
+		c.Set("message", "failed to delete user avatar")
+		c.Set("error", true)
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	utils.Logger.Info("avatar deleted successfully")
+	
+	c.Set("response", nil)
+	c.Set("message", "avatar deleted successfully")
+	c.Set("error", false)
+	c.Status(http.StatusOK)
+}
