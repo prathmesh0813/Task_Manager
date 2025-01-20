@@ -39,6 +39,8 @@ func SignUp(c *gin.Context) {
 		return
 	}
 
+	user.Gender = strings.ToLower(user.Gender)
+
 	//Save user in DB
 	uid, err := dao.SaveUser(&user)
 	if err != nil {
