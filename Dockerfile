@@ -1,5 +1,5 @@
 # Use Go 1.23.4 as the base image
-FROM golang:1.23.4
+FROM golang:1.23-alpine
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -12,6 +12,13 @@ RUN go mod download
 
 # Copy the rest of the application code
 COPY . .
+
+# Set the environment variable
+ENV DB_URL="sql12757719:NJj116624V@tcp(sql12.freesqldatabase.com:3306)/sql12757719?charset=utf8mb4&parseTime=True&loc=Local" 
+ENV JWT_SEC="ThisIsSec" 
+ENV JWT_REF_SEC="ThisIsSuperSec"
+ENV JWT_EXP_DURATION="24h"
+ENV REF_EXP_DURATION="48h"
 
 # Build the Go application
 RUN go build -o main .
