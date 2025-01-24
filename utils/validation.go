@@ -9,7 +9,7 @@ import (
 )
 
 // ValidateDetails validates name, email, mobile, gender, and password.
-func ValidateDetails(name, email string, mobile int64, gender, password, confirmPassword string) error {
+func ValidateDetails(name, email string, mobile, gender, password, confirmPassword string) error {
 	// Validate name
 	if len(name) < 2 {
 		return errors.New("name must be at least 2 characters long")
@@ -22,8 +22,7 @@ func ValidateDetails(name, email string, mobile int64, gender, password, confirm
 		return errors.New("invalid email format")
 	}
 	// Validate mobile
-	mobileStr := strconv.FormatInt(mobile, 10)
-	if len(mobileStr) != 10 || !regexp.MustCompile(`^\d{10}$`).Match([]byte(mobileStr)) {
+	if len(mobile) != 10 || !regexp.MustCompile(`^\d{10}$`).Match([]byte(mobile)) {
 		return errors.New("mobile number must be 10 digits")
 	}
 	// Validate gender
@@ -80,8 +79,7 @@ func ValidateUser(name string, mobileno int64) error {
 	return nil
 }
 
-
-//Validate password
+// Validate password
 func ValidatePassword(password string) error {
 	var hasUpper, hasLower, hasDigit, hasSpecial bool
 	for _, char := range password {

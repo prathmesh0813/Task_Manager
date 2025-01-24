@@ -16,7 +16,7 @@ var DB *gorm.DB
 type User struct {
 	ID       int64  `gorm:"primaryKey;autoIncrement"`
 	Name     string `gorm:"not null"`
-	MobileNo int64  `gorm:"not null"`
+	MobileNo string  `gorm:"not null"`
 	Gender   string `gorm:"not null"`
 	Email    string `gorm:"not null;unique"`
 }
