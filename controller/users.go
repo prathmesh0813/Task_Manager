@@ -53,23 +53,13 @@ func SignUp(c *gin.Context) {
 
 	}
 
-	//Generate user token
-	userToken, err := utils.GenerateJwtToken(uid)
+	//Generate pair of tokens
+	userToken, refreshToken, err := utils.GenerateTokens(uid)
 	if err != nil {
-		utils.Logger.Error("unable to generate the user token", zap.Error(err), zap.Int64("userId", user.ID))
-		c.Set("response", nil)
-		c.Set("message", "failed to register the user")
-		c.Set("error", true)
-		c.Status(http.StatusInternalServerError)
-		return
-	}
+		utils.Logger.Error("error generating new access token", zap.Error(err))
 
-	//Generate Refresh token
-	refreshToken, err := utils.GenerateRefreshToken(uid)
-	if err != nil {
-		utils.Logger.Error("unable to generate the refresh token", zap.Error(err), zap.Int64("userId", user.ID))
 		c.Set("response", nil)
-		c.Set("message", "failed to register the user")
+		c.Set("message", "error generating new access token")
 		c.Set("error", true)
 		c.Status(http.StatusInternalServerError)
 		return
@@ -91,6 +81,7 @@ func SignUp(c *gin.Context) {
 	c.Set("message", "User registered successfully")
 	c.Set("error", false)
 	c.Status(http.StatusCreated)
+
 }
 
 // user sign in
@@ -119,26 +110,13 @@ func SignIn(c *gin.Context) {
 		c.Status(http.StatusBadRequest)
 		return
 	}
-
-	//generate user token
-	userToken, err := utils.GenerateJwtToken(login.ID)
+	//Generate pair of tokens
+	userToken, refreshToken, err := utils.GenerateTokens(login.ID)
 	if err != nil {
-		utils.Logger.Error("Failed to generate user token", zap.Int64("userId", login.ID), zap.Error(err))
+		utils.Logger.Error("error generating new access token", zap.Error(err))
 
 		c.Set("response", nil)
-		c.Set("message", "user login failed")
-		c.Set("error", true)
-		c.Status(http.StatusInternalServerError)
-		return
-	}
-
-	//generate refresh token
-	refreshToken, err := utils.GenerateRefreshToken(login.ID)
-	if err != nil {
-		utils.Logger.Error("Failed to generate refresh token", zap.Int64("userId", login.ID), zap.Error(err))
-
-		c.Set("response", nil)
-		c.Set("message", "user login failed")
+		c.Set("message", "error generating new access token")
 		c.Set("error", true)
 		c.Status(http.StatusInternalServerError)
 		return

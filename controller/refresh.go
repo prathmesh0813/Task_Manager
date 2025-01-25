@@ -50,24 +50,35 @@ func RefreshTokenHandler(c *gin.Context) {
 		return
 	}
 
-	// Generate a new access token
-	newUserToken, err := utils.GenerateJwtToken(userId)
+	// // Generate a new access token
+	// newUserToken, err := utils.GenerateJwtToken(userId)
+	// if err != nil {
+	// 	utils.Logger.Error("error generating new access token", zap.Error(err))
+
+	// 	c.Set("response", nil)
+	// 	c.Set("message", "error generating new access token")
+	// 	c.Set("error", true)
+	// 	c.Status(http.StatusInternalServerError)
+	// 	return
+	// }
+
+	// newRefreshToken, err := utils.GenerateRefreshToken(userId)
+	// if err != nil {
+	// 	utils.Logger.Error("error generating new refresh token", zap.Error(err))
+
+	// 	c.Set("response", nil)
+	// 	c.Set("message", "error generating new refresh token")
+	// 	c.Set("error", true)
+	// 	c.Status(http.StatusInternalServerError)
+	// 	return
+	// }
+
+	newUserToken, newRefreshToken, err := utils.GenerateTokens(userId)
 	if err != nil {
 		utils.Logger.Error("error generating new access token", zap.Error(err))
 
 		c.Set("response", nil)
 		c.Set("message", "error generating new access token")
-		c.Set("error", true)
-		c.Status(http.StatusInternalServerError)
-		return
-	}
-
-	newRefreshToken, err := utils.GenerateRefreshToken(userId)
-	if err != nil {
-		utils.Logger.Error("error generating new refresh token", zap.Error(err))
-
-		c.Set("response", nil)
-		c.Set("message", "error generating new refresh token")
 		c.Set("error", true)
 		c.Status(http.StatusInternalServerError)
 		return

@@ -9,34 +9,58 @@ import (
 	"go.uber.org/zap"
 )
 
-// generates user token
-func GenerateJwtToken(userId int64) (string, error) {
+// Generate pair of tokens
+func GenerateTokens(userId int64) (string, string, error) {
+	// Default expiration durations
+	const defaultUserExpDuration = "2h"
+	const defaultRefreshExpDuration = "4h"
 
-	expDuration := os.Getenv("JWT_EXP_DURATION")
-	duration, _ := time.ParseDuration(expDuration)
-	expTime := time.Now().Add(duration).Unix()
+	// Fetch user token exp duration from the environment or use default
+	userExpDuration := os.Getenv("JWT_EXP_DURATION")
+	if userExpDuration == "" {
+		userExpDuration = defaultUserExpDuration
+	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+	userDuration, _ := time.ParseDuration(userExpDuration)
+
+	// Fetch refresh token exp duration from the environment or use default
+	refreshExpDuration := os.Getenv("REF_EXP_DURATION")
+	if refreshExpDuration == "" {
+		refreshExpDuration = defaultRefreshExpDuration
+	}
+
+	refreshDuration, _ := time.ParseDuration(refreshExpDuration)
+
+	// Calculate exp times for user token and refresh
+	userExpTime := time.Now().Add(userDuration).Unix()
+	refreshExpTime := time.Now().Add(refreshDuration).Unix()
+
+	// Fetch secrets from environment
+	userSecret := os.Getenv("JWT_SEC")
+	if userSecret == "" {
+		return "", "", errors.New("JWT_SEC is not set")
+	}
+	// Fetch secrets from environment
+	refreshSecret := os.Getenv("JWT_REF_SEC")
+	if refreshSecret == "" {
+		return "", "", errors.New("JWT_REF_SEC is not set")
+	}
+
+	// Generate user token
+	userToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"userId": userId,
-		"exp":    expTime,
+		"exp":    userExpTime,
 	})
+	signedUserToken, _ := userToken.SignedString([]byte(userSecret))
 
-	return token.SignedString([]byte(os.Getenv("JWT_SEC")))
-}
-
-// generate refresh token
-func GenerateRefreshToken(userId int64) (string, error) {
-
-	expDuration := os.Getenv("REF_EXP_DURATION")
-	duration, _ := time.ParseDuration(expDuration)
-	expTime := time.Now().Add(duration).Unix()
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+	// Generate refresh token
+	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"userId": userId,
-		"exp":    expTime,
+		"exp":    refreshExpTime,
 	})
+	signedRefreshToken, _ := refreshToken.SignedString([]byte(refreshSecret))
 
-	return token.SignedString([]byte(os.Getenv("JWT_REF_SEC")))
+	return signedUserToken, signedRefreshToken, nil
 }
 
 // verify user token
