@@ -21,21 +21,15 @@ func SignUp(c *gin.Context) {
 	err := c.ShouldBindJSON(&user)
 	if err != nil {
 		utils.Logger.Error("cannot parsed the requested data", zap.Error(err), zap.Int64("userId", user.ID))
-		c.Set("response", nil)
-		c.Set("message", "failed to register the user")
-		c.Set("error", true)
-		c.Status(http.StatusBadRequest)
+		utils.SetResponse(c, nil, "failed to register the user", true, http.StatusBadRequest)
 		return
 	}
 
 	//validate User credentials
 	err = utils.ValidateDetails(user.Name, user.Email, user.Mobile_No, user.Gender, user.Password, user.Confirm_Password)
 	if err != nil {
-		utils.Logger.Error("User details no validate", zap.Error(err), zap.Int64("userId", user.ID))
-		c.Set("response", nil)
-		c.Set("message", err.Error())
-		c.Set("error", true)
-		c.Status(http.StatusBadRequest)
+		utils.Logger.Error("User details not validate", zap.Error(err), zap.Int64("userId", user.ID))
+		utils.SetResponse(c, nil, err.Error(), true, http.StatusBadRequest)
 		return
 	}
 
@@ -45,10 +39,7 @@ func SignUp(c *gin.Context) {
 	uid, err := dao.SaveUser(&user)
 	if err != nil {
 		utils.Logger.Error("Unable to save user. User already exist", zap.Error(err), zap.Int64("userId", user.ID))
-		c.Set("response", nil)
-		c.Set("message", "user already exist")
-		c.Set("error", true)
-		c.Status(http.StatusBadRequest)
+		utils.SetResponse(c, nil, "user already exist", true, http.StatusBadRequest)
 		return
 
 	}
@@ -56,12 +47,8 @@ func SignUp(c *gin.Context) {
 	//Generate pair of tokens
 	userToken, refreshToken, err := utils.GenerateTokens(uid)
 	if err != nil {
-		utils.Logger.Error("error generating new access token", zap.Error(err))
-
-		c.Set("response", nil)
-		c.Set("message", "error generating new access token")
-		c.Set("error", true)
-		c.Status(http.StatusInternalServerError)
+		utils.Logger.Error("error generating pair of tokens", zap.Error(err))
+		utils.SetResponse(c, nil, "error generating pair of tokens", true, http.StatusInternalServerError)
 		return
 	}
 
@@ -69,18 +56,12 @@ func SignUp(c *gin.Context) {
 	err = dao.SaveToken(uid, userToken, refreshToken)
 	if err != nil {
 		utils.Logger.Error("failed to save the token", zap.Error(err), zap.Int64("userId", user.ID))
-		c.Set("response", nil)
-		c.Set("message", "failed to register the user")
-		c.Set("error", true)
-		c.Status(http.StatusInternalServerError)
+		utils.SetResponse(c, nil, "failed to register the user", true, http.StatusInternalServerError)
 		return
 	}
 
 	utils.Logger.Info("User registered successfully", zap.Int64("userId", uid))
-	c.Set("response", gin.H{"refresh_token": refreshToken, "user_token": userToken})
-	c.Set("message", "User registered successfully")
-	c.Set("error", false)
-	c.Status(http.StatusCreated)
+	utils.SetResponse(c, gin.H{"refresh_token": refreshToken, "user_token": userToken}, "User registered successfully", false, http.StatusCreated)
 
 }
 
@@ -91,11 +72,7 @@ func SignIn(c *gin.Context) {
 	err := c.ShouldBindJSON(&login)
 	if err != nil {
 		utils.Logger.Warn("Failed to parse login request", zap.Error(err))
-
-		c.Set("response", nil)
-		c.Set("message", "username and password required")
-		c.Set("error", true)
-		c.Status(http.StatusBadRequest)
+		utils.SetResponse(c, nil, "username and password required", true, http.StatusBadRequest)
 		return
 	}
 
@@ -103,22 +80,14 @@ func SignIn(c *gin.Context) {
 	err = dao.ValidateCredentials(&login)
 	if err != nil {
 		utils.Logger.Warn("Authentication failed", zap.Error(err))
-
-		c.Set("response", nil)
-		c.Set("message", "incorrect username or password")
-		c.Set("error", true)
-		c.Status(http.StatusBadRequest)
+		utils.SetResponse(c, nil, "incorrect username or password", true, http.StatusBadRequest)
 		return
 	}
 	//Generate pair of tokens
 	userToken, refreshToken, err := utils.GenerateTokens(login.ID)
 	if err != nil {
-		utils.Logger.Error("error generating new access token", zap.Error(err))
-
-		c.Set("response", nil)
-		c.Set("message", "error generating new access token")
-		c.Set("error", true)
-		c.Status(http.StatusInternalServerError)
+		utils.Logger.Error("error generating pair of tokens", zap.Error(err))
+		utils.SetResponse(c, nil, "error generating pair of tokens", true, http.StatusInternalServerError)
 		return
 	}
 
@@ -126,20 +95,13 @@ func SignIn(c *gin.Context) {
 	err = dao.SaveToken(login.ID, userToken, refreshToken)
 	if err != nil {
 		utils.Logger.Error("Failed to save token", zap.Int64("userId", login.ID), zap.Error(err))
-
-		c.Set("response", nil)
-		c.Set("message", "user login failed")
-		c.Set("error", true)
-		c.Status(http.StatusInternalServerError)
+		utils.SetResponse(c, nil, "user login failed", true, http.StatusInternalServerError)
 		return
 	}
 
 	utils.Logger.Info("User signed in successfully", zap.Int64("userId", login.ID))
+	utils.SetResponse(c, gin.H{"refresh_token": refreshToken, "user_token": userToken}, "user sign in successfully", false, http.StatusCreated)
 
-	c.Set("response", gin.H{"refresh_token": refreshToken, "user_token": userToken})
-	c.Set("message", "user sign in successfully")
-	c.Set("error", false)
-	c.Status(http.StatusCreated)
 }
 
 // Fetch the user details
@@ -154,10 +116,7 @@ func GetUser(c *gin.Context) {
 	userId, exists := c.Get("userId")
 	if !exists {
 		utils.Logger.Warn("Unauthorized.User not authenticated", zap.Error(err), zap.Int64("userId", userId.(int64)))
-		c.Set("response", nil)
-		c.Set("message", "Unauthorized.User not authenticated")
-		c.Set("error", true)
-		c.Status(http.StatusUnauthorized)
+		utils.SetResponse(c, nil, "Unauthorized.User not authenticated", true, http.StatusUnauthorized)
 		return
 	}
 
@@ -165,20 +124,13 @@ func GetUser(c *gin.Context) {
 	user, err := dao.GetUserById(userId.(int64))
 	if err != nil {
 		utils.Logger.Error("Could not fetch user", zap.Error(err), zap.Int64("userId", userId.(int64)))
-		c.Set("response", nil)
-		c.Set("message", "Could not fetch user")
-		c.Set("error", true)
-		c.Status(http.StatusInternalServerError)
+		utils.SetResponse(c, nil, "Could not fetch user", true, http.StatusInternalServerError)
 		return
 	}
 
 	user.Avatar = "/user/avatar/" + strconv.FormatInt(userId.(int64), 10)
 	utils.Logger.Info("User Fetch successfully", zap.Error(err), zap.Int64("userId", userId.(int64)))
-	c.Set("response", gin.H{"user": user})
-	c.Set("message", "User Fetch successfully")
-	c.Set("error", false)
-	c.Status(http.StatusOK)
-
+	utils.SetResponse(c, gin.H{"user": user}, "User Fetch successfully", false, http.StatusOK)
 }
 
 // Updates user details
@@ -191,19 +143,13 @@ func UpdateUser(c *gin.Context) {
 	userId, exists := c.Get("userId")
 	if !exists {
 		utils.Logger.Warn("Unauthorized .User not authenticated", zap.Error(err), zap.Int64("userId", userId.(int64)))
-		c.Set("response", nil)
-		c.Set("message", "Unauthorized .User not authenticated")
-		c.Set("error", true)
-		c.Status(http.StatusUnauthorized)
+		utils.SetResponse(c, nil, "Unauthorized .User not authenticated", true, http.StatusUnauthorized)
 		return
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		utils.Logger.Error("Invalid request body", zap.Error(err), zap.Int64("userId", userId.(int64)))
-		c.Set("response", nil)
-		c.Set("message", "Invalid request body")
-		c.Set("error", true)
-		c.Status(http.StatusBadRequest)
+		utils.SetResponse(c, nil, "Invalid request body", true, http.StatusBadRequest)
 		return
 	}
 
@@ -211,10 +157,7 @@ func UpdateUser(c *gin.Context) {
 	err = utils.ValidateUser(req.Name, req.Mobile_No)
 	if err != nil {
 		utils.Logger.Error("Credentials are not validate", zap.Error(err), zap.Int64("userId", userId.(int64)))
-		c.Set("response", nil)
-		c.Set("message", err.Error())
-		c.Set("error", true)
-		c.Status(http.StatusBadRequest)
+		utils.SetResponse(c, nil, err.Error(), true, http.StatusBadRequest)
 		return
 	}
 
@@ -222,18 +165,12 @@ func UpdateUser(c *gin.Context) {
 	err = dao.UpdateUserDetails(userId.(int64), req)
 	if err != nil {
 		utils.Logger.Error("Failed to update user", zap.Error(err), zap.Int64("userId", userId.(int64)))
-		c.Set("response", nil)
-		c.Set("message", "Failed to update user")
-		c.Set("error", true)
-		c.Status(http.StatusInternalServerError)
+		utils.SetResponse(c, nil, "Failed to update user", true, http.StatusInternalServerError)
 		return
 	}
 
 	utils.Logger.Info("User details updated successfully", zap.Int64("userId", userId.(int64)))
-	c.Set("response", nil)
-	c.Set("message", "User details updated successfully")
-	c.Set("error", false)
-	c.Status(http.StatusOK)
+	utils.SetResponse(c, nil, "User details updated successfully", false, http.StatusOK)
 
 }
 
@@ -252,19 +189,13 @@ func UpdatePassword(c *gin.Context) {
 	userIdFromToken, exists := c.Get("userId")
 	if !exists {
 		utils.Logger.Warn("Unauthorized.User not authenticated", zap.Error(err), zap.Int64("userId", userIdFromToken.(int64)))
-		c.Set("response", nil)
-		c.Set("message", "Unauthorized.User not authenticated")
-		c.Set("error", true)
-		c.Status(http.StatusUnauthorized)
+		utils.SetResponse(c, nil, "Unauthorized.User not authenticated", true, http.StatusUnauthorized)
 		return
 	}
 	// Bind JSON request to struct
 	if err := c.ShouldBindJSON(&req); err != nil {
 		utils.Logger.Error("Invalid request body", zap.Error(err), zap.Int64("userId", userIdFromToken.(int64)))
-		c.Set("response", nil)
-		c.Set("message", "Invalid request body")
-		c.Set("error", true)
-		c.Status(http.StatusBadRequest)
+		utils.SetResponse(c, nil, "Invalid request body", true, http.StatusBadRequest)
 		return
 	}
 
@@ -272,10 +203,7 @@ func UpdatePassword(c *gin.Context) {
 	err = utils.ValidatePassword(req.NewPassword)
 	if err != nil {
 		utils.Logger.Error("Credentials are not validate", zap.Error(err), zap.Int64("userId", userIdFromToken.(int64)))
-		c.Set("response", nil)
-		c.Set("message", err.Error())
-		c.Set("error", true)
-		c.Status(http.StatusBadRequest)
+		utils.SetResponse(c, nil, err.Error(), true, http.StatusBadRequest)
 		return
 	}
 
@@ -283,10 +211,7 @@ func UpdatePassword(c *gin.Context) {
 	user, err := dao.GetUserByIdPassChng(userIdFromToken.(int64))
 	if err != nil {
 		utils.Logger.Error("User not found", zap.Error(err), zap.Int64("userId", userIdFromToken.(int64)))
-		c.Set("response", nil)
-		c.Set("message", "User not found")
-		c.Set("error", true)
-		c.Status(http.StatusNotFound)
+		utils.SetResponse(c, nil, "User not found", true, http.StatusNotFound)
 		return
 	}
 
@@ -294,10 +219,7 @@ func UpdatePassword(c *gin.Context) {
 	passwordIsValid := utils.CheckPasswordHash(req.OldPassword, user.Password)
 	if !passwordIsValid {
 		utils.Logger.Error("Incorrect old password", zap.Error(err), zap.Int64("userId", userIdFromToken.(int64)))
-		c.Set("response", nil)
-		c.Set("message", "Incorrect old password")
-		c.Set("error", true)
-		c.Status(http.StatusBadRequest)
+		utils.SetResponse(c, nil, "Incorrect old password", true, http.StatusBadRequest)
 		return
 	}
 
@@ -305,10 +227,7 @@ func UpdatePassword(c *gin.Context) {
 	hashedPassword, err := utils.HashPassword(req.NewPassword)
 	if err != nil {
 		utils.Logger.Error("Failed to hashed password", zap.Error(err), zap.Int64("userId", userIdFromToken.(int64)))
-		c.Set("response", nil)
-		c.Set("message", "Failed to hashed password")
-		c.Set("error", true)
-		c.Status(http.StatusInternalServerError)
+		utils.SetResponse(c, nil, "Failed to hashed password", true, http.StatusInternalServerError)
 		return
 	}
 
@@ -316,10 +235,7 @@ func UpdatePassword(c *gin.Context) {
 	err = dao.UpdatePassById(userIdFromToken.(int64), hashedPassword)
 	if err != nil {
 		utils.Logger.Error("Failed to update password", zap.Error(err), zap.Int64("userId", userIdFromToken.(int64)))
-		c.Set("response", nil)
-		c.Set("message", "Failed to update password")
-		c.Set("error", true)
-		c.Status(http.StatusInternalServerError)
+		utils.SetResponse(c, nil, "Failed to update password", true, http.StatusInternalServerError)
 		return
 	}
 
@@ -327,19 +243,12 @@ func UpdatePassword(c *gin.Context) {
 	err = dao.DeleteTokenById(userIdFromToken.(int64), token)
 	if err != nil {
 		utils.Logger.Error("Failed to delete token", zap.Error(err), zap.Int64("userId", userIdFromToken.(int64)))
-		c.Set("response", nil)
-		c.Set("message", "Failed to delete token")
-		c.Set("error", true)
-		c.Status(http.StatusInternalServerError)
+		utils.SetResponse(c, nil, "Failed to delete token", true, http.StatusInternalServerError)
 		return
 	}
 
 	utils.Logger.Info("Password Updated Successfully.", zap.Int64("userId", userIdFromToken.(int64)))
-	c.Set("response", nil)
-	c.Set("message", "Password Updated Successfully.")
-	c.Set("error", false)
-	c.Status(http.StatusOK)
-
+	utils.SetResponse(c, nil, "Password Updated Successfully.", false, http.StatusOK)
 }
 
 // Signout user
@@ -353,19 +262,13 @@ func SignOut(c *gin.Context) {
 	tokenString := strings.TrimSpace(c.GetHeader("Authorization"))
 	if tokenString == "" {
 		utils.Logger.Error("Token not provided")
-		c.Set("response", nil)
-		c.Set("message", "Token not provided")
-		c.Set("error", true)
-		c.Status(http.StatusUnauthorized)
+		utils.SetResponse(c, nil, "Token not provided", true, http.StatusUnauthorized)
 		return
 	}
 	userId, exists := c.Get("userId")
 	if !exists {
 		utils.Logger.Warn("Unauthorized.User not authenticated", zap.Int64("userId", userId.(int64)))
-		c.Set("response", nil)
-		c.Set("message", "Unauthorized.User not authenticated")
-		c.Set("error", true)
-		c.Status(http.StatusUnauthorized)
+		utils.SetResponse(c, nil, "Unauthorized.User not authenticated", true, http.StatusUnauthorized)
 		return
 	}
 
@@ -377,10 +280,7 @@ func SignOut(c *gin.Context) {
 
 	if err != nil {
 		utils.Logger.Error("Invalid query parameter for 'all'. It must be true or false", zap.Error(err), zap.Int64("userId", userId.(int64)))
-		c.Set("response", nil)
-		c.Set("message", "Invalid query parameter for 'all'. It must be true or false")
-		c.Set("error", true)
-		c.Status(http.StatusBadRequest)
+		utils.SetResponse(c, nil, "Invalid query parameter for 'all'. It must be true or false", true, http.StatusBadRequest)
 		return
 
 	}
@@ -392,32 +292,20 @@ func SignOut(c *gin.Context) {
 		err = dao.SignOutAllUsers(userId.(int64))
 		if err != nil {
 			utils.Logger.Error("Failed to signout from all devices", zap.Error(err), zap.Int64("userId", userId.(int64)))
-			c.Set("response", nil)
-			c.Set("message", "Failed to signout from all devices")
-			c.Set("error", true)
-			c.Status(http.StatusBadRequest)
+			utils.SetResponse(c, nil, "Failed to signout from all devices", true, http.StatusBadRequest)
 		}
 		utils.Logger.Info("Signout from all devices is successfully", zap.Int64("userId", userId.(int64)))
-		c.Set("response", nil)
-		c.Set("message", "Signout from all devices is successfully")
-		c.Set("error", false)
-		c.Status(http.StatusOK)
+		utils.SetResponse(c, nil, "Signout from all devices is successfully", false, http.StatusOK)
 	} else {
 		//Sign out single user if all query param value is false
 		err = dao.DeleteToken(tokenString)
 		if err != nil {
 			utils.Logger.Error("Failed to signout", zap.Error(err), zap.Int64("userId", userId.(int64)))
-			c.Set("response", nil)
-			c.Set("message", "Failed to signout")
-			c.Set("error", true)
-			c.Status(http.StatusBadRequest)
+			utils.SetResponse(c, nil, "Failed to signout", true, http.StatusBadRequest)
 			return
 		}
 
 		utils.Logger.Info("User sign out successfully", zap.Int64("userId", userId.(int64)))
-		c.Set("response", nil)
-		c.Set("message", "User sign out successfully")
-		c.Set("error", false)
-		c.Status(http.StatusOK)
+		utils.SetResponse(c, nil, "User sign out successfully", false, http.StatusOK)
 	}
 }

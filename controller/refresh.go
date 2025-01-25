@@ -20,10 +20,7 @@ func RefreshTokenHandler(c *gin.Context) {
 	refreshToken := c.GetHeader("Refresh-Token")
 	if refreshToken == "" {
 		utils.Logger.Error("refresh token required", zap.Error(err))
-		c.Set("response", nil)
-		c.Set("message", "refresh token required")
-		c.Set("error", true)
-		c.Status(http.StatusUnauthorized)
+		utils.SetResponse(c, nil, "refresh token required", true, http.StatusUnauthorized)
 		return
 	}
 
@@ -33,84 +30,37 @@ func RefreshTokenHandler(c *gin.Context) {
 		err = dao.DeleteRefreshToken(refreshToken)
 		if err != nil {
 			utils.Logger.Error("failed to delete refresh token", zap.Error(err))
-
-			c.Set("response", nil)
-			c.Set("message", "failed to delete refresh token")
-			c.Set("error", true)
-			c.Status(http.StatusNotFound)
+			utils.SetResponse(c, nil, "failed to delete refresh token", true, http.StatusNotFound)
 			return
 		}
 
 		utils.Logger.Error("invalid refresh token", zap.Error(err))
-
-		c.Set("response", nil)
-		c.Set("message", "invalid refresh token")
-		c.Set("error", true)
-		c.Status(http.StatusUnauthorized)
+		utils.SetResponse(c, nil, "invalid refresh token", true, http.StatusUnauthorized)
 		return
 	}
-
-	// // Generate a new access token
-	// newUserToken, err := utils.GenerateJwtToken(userId)
-	// if err != nil {
-	// 	utils.Logger.Error("error generating new access token", zap.Error(err))
-
-	// 	c.Set("response", nil)
-	// 	c.Set("message", "error generating new access token")
-	// 	c.Set("error", true)
-	// 	c.Status(http.StatusInternalServerError)
-	// 	return
-	// }
-
-	// newRefreshToken, err := utils.GenerateRefreshToken(userId)
-	// if err != nil {
-	// 	utils.Logger.Error("error generating new refresh token", zap.Error(err))
-
-	// 	c.Set("response", nil)
-	// 	c.Set("message", "error generating new refresh token")
-	// 	c.Set("error", true)
-	// 	c.Status(http.StatusInternalServerError)
-	// 	return
-	// }
 
 	newUserToken, newRefreshToken, err := utils.GenerateTokens(userId)
 	if err != nil {
 		utils.Logger.Error("error generating new access token", zap.Error(err))
-
-		c.Set("response", nil)
-		c.Set("message", "error generating new access token")
-		c.Set("error", true)
-		c.Status(http.StatusInternalServerError)
+		utils.SetResponse(c, nil, "error generating new access token", true, http.StatusInternalServerError)
 		return
 	}
 
 	err = dao.SaveToken(userId, newUserToken, newRefreshToken)
 	if err != nil {
 		utils.Logger.Error("could not save token", zap.Error(err))
-
-		c.Set("response", nil)
-		c.Set("message", "could not save token")
-		c.Set("error", true)
-		c.Status(http.StatusInternalServerError)
+		utils.SetResponse(c, nil, "could not save token", true, http.StatusInternalServerError)
 		return
 	}
 
 	err = dao.DeleteRefreshToken(refreshToken)
 	if err != nil {
 		utils.Logger.Error("failed to delete refresh token", zap.Error(err))
-
-		c.Set("response", nil)
-		c.Set("message", "failed to delete refresh token")
-		c.Set("error", true)
-		c.Status(http.StatusNotFound)
+		utils.SetResponse(c, nil, "failed to delete refresh token", true, http.StatusNotFound)
 		return
 	}
 
 	// Return the new access token to the client
 	utils.Logger.Info("token refreshed successfully")
-
-	c.Set("response", gin.H{"refresh_token": newRefreshToken, "user_token": newUserToken})
-	c.Set("message", "token refreshed successfully")
-	c.Set("error", false)
-	c.Status(http.StatusOK)
+	utils.SetResponse(c, gin.H{"refresh_token": newRefreshToken, "user_token": newUserToken}, "token refreshed successfully", false, http.StatusOK)
 }

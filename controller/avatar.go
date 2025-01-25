@@ -25,20 +25,14 @@ func UploadAvatar(c *gin.Context) {
 	userId, exists := c.Get("userId")
 	if !exists {
 		utils.Logger.Warn("Unauthorized.User not authenticated", zap.Int64("userId", userId.(int64)))
-		c.Set("response", nil)
-		c.Set("message", "Unauthorized.User not authenticated")
-		c.Set("error", true)
-		c.Status(http.StatusUnauthorized)
+		utils.SetResponse(c, nil, "Unauthorized.User not authenticated", true, http.StatusUnauthorized)
 		return
 	}
 
 	fileHeader, err := c.FormFile("avatar")
 	if err != nil {
 		utils.Logger.Error("Invalid file", zap.Error(err), zap.Int64("userId", userId.(int64)))
-		c.Set("response", nil)
-		c.Set("message", "Invalid file")
-		c.Set("error", true)
-		c.Status(http.StatusBadRequest)
+		utils.SetResponse(c, nil, "Invalid file", true, http.StatusBadRequest)
 		return
 	}
 
@@ -46,10 +40,7 @@ func UploadAvatar(c *gin.Context) {
 	fileExtension, err := utils.ValidateAvatar(fileHeader)
 	if err != nil {
 		utils.Logger.Error("Invalid file extension or file size", zap.Error(err), zap.Int64("userId", userId.(int64)))
-		c.Set("response", nil)
-		c.Set("message", err.Error())
-		c.Set("error", true)
-		c.Status(http.StatusBadRequest)
+		utils.SetResponse(c, nil, err.Error(), true, http.StatusBadRequest)
 		return
 	}
 
@@ -59,20 +50,14 @@ func UploadAvatar(c *gin.Context) {
 	file, err := fileHeader.Open()
 	if err != nil {
 		utils.Logger.Error("Failed to open uploded file", zap.Error(err), zap.Int64("userId", userId.(int64)))
-		c.Set("response", nil)
-		c.Set("message", "Failed to open uploded file")
-		c.Set("error", true)
-		c.Status(http.StatusInternalServerError)
+		utils.SetResponse(c, nil, "Failed to open uploded file", true, http.StatusInternalServerError)
 		return
 	}
 
 	content, err := io.ReadAll(file)
 	if err != nil {
 		utils.Logger.Error("Failed to read uploded file", zap.Error(err), zap.Int64("userId", userId.(int64)))
-		c.Set("response", nil)
-		c.Set("message", "Failed to read uploded file")
-		c.Set("error", true)
-		c.Status(http.StatusInternalServerError)
+		utils.SetResponse(c, nil, "Failed to read uploded file", true, http.StatusInternalServerError)
 		return
 	}
 
@@ -84,36 +69,24 @@ func UploadAvatar(c *gin.Context) {
 		if err != nil {
 			//utils.StandardResponse(c, http.StatusInternalServerError, "Failed to save avatar", true, nil)
 			utils.Logger.Error("Failed to save avatar", zap.Error(err), zap.Int64("userId", userId.(int64)))
-			c.Set("response", nil)
-			c.Set("message", "Failed to save avatar")
-			c.Set("error", true)
-			c.Status(http.StatusInternalServerError)
+			utils.SetResponse(c, nil, "Failed to save avatar", true, http.StatusInternalServerError)
 			return
 		}
 
 		utils.Logger.Info("Avatar updated", zap.Int64("userId", userId.(int64)))
-		c.Set("response", nil)
-		c.Set("message", "Avatar updated")
-		c.Set("error", false)
-		c.Status(http.StatusOK)
+		utils.SetResponse(c, nil, "Avatar updated", false, http.StatusOK)
 	} else {
 		//If not uploaded then upload the avatar
 		err = dao.SaveAvatar(userId.(int64), content, fileName)
 		if err != nil {
 			utils.Logger.Error("Failed to upload avatar", zap.Error(err), zap.Int64("userId", userId.(int64)))
-			c.Set("response", nil)
-			c.Set("message", "Failed to upload avatar")
-			c.Set("error", true)
-			c.Status(http.StatusInternalServerError)
+			utils.SetResponse(c, nil,  "Failed to upload avatar", true, http.StatusInternalServerError)
 			return
 		}
 	}
 	defer file.Close()
 	utils.Logger.Info("Avatar uploaded", zap.Int64("userId", userId.(int64)))
-	c.Set("response", nil)
-	c.Set("message", "Avatar uploaded")
-	c.Set("error", false)
-	c.Status(http.StatusOK)
+	utils.SetResponse(c, nil, "Avatar uploaded", false, http.StatusOK)
 }
 
 // read avatar
@@ -121,22 +94,14 @@ func ReadAvatar(c *gin.Context) {
 	userId, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
 		utils.Logger.Error("Failed to parse avatar Id", zap.String("param", c.Param("id")), zap.Error(err))
-
-		c.Set("response", nil)
-		c.Set("message", "could not parse avatar id")
-		c.Set("error", true)
-		c.Status(http.StatusBadRequest)
+		utils.SetResponse(c, nil, "could not parse avatar id", true, http.StatusBadRequest)
 		return
 	}
 
 	avatar, err := dao.ReadAvatar(userId)
 	if err != nil {
 		utils.Logger.Error("failed to read avatar")
-
-		c.Set("response", nil)
-		c.Set("message", "failed to read avatar")
-		c.Set("error", true)
-		c.Status(http.StatusInternalServerError)
+		utils.SetResponse(c, nil, "failed to read avatar", true, http.StatusInternalServerError)
 		return
 	}
 
@@ -154,40 +119,25 @@ func DeleteAvatar(c *gin.Context) {
 	userId, exists := c.Get("userId")
 	if !exists {
 		utils.Logger.Error("User ID not found in context", zap.String("context", "userId"))
-
-		c.Set("response", nil)
-		c.Set("message", "unauthorized, user not authenticated")
-		c.Set("error", true)
-		c.Status(http.StatusUnauthorized)
+		utils.SetResponse(c, nil, "unauthorized, user not authenticated", true, http.StatusUnauthorized)
 		return
 	}
 
 	_, err = dao.ReadAvatar(userId.(int64))
 	if err != nil {
 		utils.Logger.Error("failed to read avatar", zap.Error(err))
-
-		c.Set("response", nil)
-		c.Set("message", "no avatar present to delete")
-		c.Set("error", true)
-		c.Status(http.StatusInternalServerError)
+		utils.SetResponse(c, nil, "no avatar present to delete", true, http.StatusInternalServerError)
 		return
 	}
 
 	err = dao.DeleteAvatar(userId.(int64))
 	if err != nil {
 		utils.Logger.Error("failed to delete avatar", zap.Error(err))
-
-		c.Set("response", nil)
-		c.Set("message", "failed to delete user avatar")
-		c.Set("error", true)
-		c.Status(http.StatusInternalServerError)
+		utils.SetResponse(c, nil, "failed to delete user avatar", true, http.StatusInternalServerError)
 		return
 	}
 
 	utils.Logger.Info("avatar deleted successfully")
+	utils.SetResponse(c, nil, "avatar deleted successfully", false, http.StatusOK)
 
-	c.Set("response", nil)
-	c.Set("message", "avatar deleted successfully")
-	c.Set("error", false)
-	c.Status(http.StatusOK)
 }

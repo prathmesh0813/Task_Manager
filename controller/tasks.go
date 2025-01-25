@@ -24,11 +24,7 @@ func CreateTask(c *gin.Context) {
 	err = c.ShouldBindJSON(&task)
 	if err != nil {
 		utils.Logger.Error("Failed to parse request", zap.Error(err))
-
-		c.Set("response", nil)
-		c.Set("message", "could not parse request")
-		c.Set("error", true)
-		c.Status(http.StatusBadRequest)
+		utils.SetResponse(c, nil, "could not parse request", true, http.StatusBadRequest)
 		return
 	}
 
@@ -40,20 +36,12 @@ func CreateTask(c *gin.Context) {
 	err = dao.SaveTask(&task)
 	if err != nil {
 		utils.Logger.Error("Failed to save task", zap.Error(err))
-
-		c.Set("response", nil)
-		c.Set("message", "failed to create the task")
-		c.Set("error", true)
-		c.Status(http.StatusBadRequest)
+		utils.SetResponse(c, nil, "failed to create the task", true, http.StatusBadRequest)
 		return
 	}
 
 	utils.Logger.Info("Task created successfully", zap.Int64("taskId", task.ID), zap.Int64("userId", userId))
-
-	c.Set("response", gin.H{"taskId": task.ID})
-	c.Set("message", "task created successfully")
-	c.Set("error", false)
-	c.Status(http.StatusCreated)
+	utils.SetResponse(c, gin.H{"taskId": task.ID}, "task created successfully", false, http.StatusCreated)
 }
 
 // fetch task by id
@@ -67,22 +55,14 @@ func GetTask(c *gin.Context) {
 	userId, exists := c.Get("userId")
 	if !exists {
 		utils.Logger.Error("User ID not found in context", zap.String("context", "userId"))
-
-		c.Set("response", nil)
-		c.Set("message", "user id not found")
-		c.Set("error", true)
-		c.Status(http.StatusUnauthorized)
+		utils.SetResponse(c, nil, "user id not found", true, http.StatusUnauthorized)
 		return
 	}
 
 	taskId, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
 		utils.Logger.Error("Failed to parse task ID", zap.String("param", c.Param("id")), zap.Error(err))
-
-		c.Set("response", nil)
-		c.Set("message", "could not parse data")
-		c.Set("error", true)
-		c.Status(http.StatusBadRequest)
+		utils.SetResponse(c, nil, "could not parse data", true, http.StatusBadRequest)
 		return
 	}
 
@@ -91,20 +71,12 @@ func GetTask(c *gin.Context) {
 	task, err := dao.GetTaskByID(taskId, userId.(int64))
 	if err != nil {
 		utils.Logger.Error("Failed to get task or access denied", zap.Int64("taskId", taskId), zap.Int64("userId", userId.(int64)))
-
-		c.Set("response", nil)
-		c.Set("message", "could not fetch task")
-		c.Set("error", true)
-		c.Status(http.StatusInternalServerError)
+		utils.SetResponse(c, nil, "could not fetch task", true, http.StatusInternalServerError)
 		return
 	}
 
 	utils.Logger.Info("Task fetched successfully", zap.Int64("taskId", taskId), zap.Int64("userId", userId.(int64)))
-
-	c.Set("response", task)
-	c.Set("message", "task fetched successfully")
-	c.Set("error", false)
-	c.Status(http.StatusOK)
+	utils.SetResponse(c, task, "task fetched successfully", false, http.StatusOK)
 }
 
 // Fetch all tasks using query params also
@@ -118,11 +90,7 @@ func GetTasksByQuery(c *gin.Context) {
 	userId, exists := c.Get("userId")
 	if !exists {
 		utils.Logger.Warn("Unauthorized access attempt in getTasksByQuery")
-
-		c.Set("response", nil)
-		c.Set("message", "not authorized")
-		c.Set("error", true)
-		c.Status(http.StatusUnauthorized)
+		utils.SetResponse(c, nil, "not authorized", true, http.StatusUnauthorized)
 		return
 	}
 
@@ -149,11 +117,7 @@ func GetTasksByQuery(c *gin.Context) {
 	tasks, totalTasks, err := dao.GetTasksWithFilters(userId.(int64), sortOrder, completed, limit, offset)
 	if err != nil {
 		utils.Logger.Error("Failed to get tasks", zap.Int64("userId", userId.(int64)), zap.Error(err))
-
-		c.Set("response", nil)
-		c.Set("message", "could not fetch tasks")
-		c.Set("error", true)
-		c.Status(http.StatusInternalServerError)
+		utils.SetResponse(c, nil, "could not fetch tasks", true, http.StatusInternalServerError)
 		return
 	}
 
@@ -162,14 +126,7 @@ func GetTasksByQuery(c *gin.Context) {
 
 	// Respond with tasks and pagination metadata
 	utils.Logger.Info("Tasks fetched successfully", zap.Int64("userId", userId.(int64)), zap.String("sortOrder", sortOrder), zap.String("completed", completed), zap.Int("page", page), zap.Int("limit", limit), zap.Int("totalPages", int(totalPages)))
-
-	c.Set("response", gin.H{
-		"tasks":       tasks,
-		"totalPages":  totalPages,
-		"currentPage": page})
-	c.Set("message", "task fetched successfully")
-	c.Set("error", false)
-	c.Status(http.StatusOK)
+	utils.SetResponse(c, gin.H{"tasks": tasks, "totalPages": totalPages, "currentPage": page}, "task fetched successfully", false, http.StatusOK)
 }
 
 // Update Task
@@ -182,11 +139,7 @@ func UpdateTask(c *gin.Context) {
 	taskId, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
 		utils.Logger.Error("Failed to parse task ID", zap.String("param", c.Param("id")), zap.Error(err))
-
-		c.Set("response", nil)
-		c.Set("message", "could not parse data")
-		c.Set("error", true)
-		c.Status(http.StatusBadRequest)
+		utils.SetResponse(c, nil, "could not parse data", true, http.StatusBadRequest)
 		return
 	}
 
@@ -195,21 +148,13 @@ func UpdateTask(c *gin.Context) {
 	task, err := dao.GetTaskByID(taskId, userID)
 	if err != nil {
 		utils.Logger.Error("Failed to fetch task", zap.Int64("taskId", taskId), zap.Int64("userId", userID), zap.Error(err))
-
-		c.Set("response", nil)
-		c.Set("message", "could not fetch task")
-		c.Set("error", true)
-		c.Status(http.StatusInternalServerError)
+		utils.SetResponse(c, nil, "could not fetch task", true, http.StatusInternalServerError)
 		return
 	}
 
 	if task.UserID != userID {
 		utils.Logger.Warn("User not authorized to update task", zap.Int64("taskId", taskId), zap.Int64("userId", userID))
-
-		c.Set("response", nil)
-		c.Set("message", "not authorized to update")
-		c.Set("error", true)
-		c.Status(http.StatusUnauthorized)
+		utils.SetResponse(c, nil, "not authorized to update", true, http.StatusUnauthorized)
 		return
 	}
 
@@ -218,11 +163,7 @@ func UpdateTask(c *gin.Context) {
 	err = c.ShouldBindJSON(&updatedTask)
 	if err != nil {
 		utils.Logger.Error("Failed to bind json", zap.Error(err))
-
-		c.Set("response", nil)
-		c.Set("message", "could not parse request")
-		c.Set("error", true)
-		c.Status(http.StatusBadRequest)
+		utils.SetResponse(c, nil, "could not parse request", true, http.StatusBadRequest)
 		return
 	}
 
@@ -231,20 +172,12 @@ func UpdateTask(c *gin.Context) {
 	err = dao.Update(&updatedTask)
 	if err != nil {
 		utils.Logger.Error("Failed to update task", zap.Int64("taskId", taskId), zap.Error(err))
-
-		c.Set("response", nil)
-		c.Set("message", "could not update task")
-		c.Set("error", true)
-		c.Status(http.StatusInternalServerError)
+		utils.SetResponse(c, nil, "could not update task", true, http.StatusInternalServerError)
 		return
 	}
 
 	utils.Logger.Info("Task updated successfully", zap.Int64("taskId", taskId), zap.Int64("userId", userID))
-
-	c.Set("response", nil)
-	c.Set("message", "task updated successfully")
-	c.Set("error", false)
-	c.Status(http.StatusOK)
+	utils.SetResponse(c, nil, "task updated successfully", false, http.StatusOK)
 }
 
 // delete task
@@ -257,11 +190,7 @@ func DeleteTask(c *gin.Context) {
 	taskId, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
 		utils.Logger.Error("Failed to parse task ID", zap.String("param", c.Param("id")), zap.Error(err))
-
-		c.Set("response", nil)
-		c.Set("message", "could not parse data")
-		c.Set("error", true)
-		c.Status(http.StatusBadRequest)
+		utils.SetResponse(c, nil, "could not parse data", true, http.StatusBadRequest)
 		return
 	}
 
@@ -270,39 +199,23 @@ func DeleteTask(c *gin.Context) {
 	task, err := dao.GetTaskByID(taskId, userID)
 	if err != nil {
 		utils.Logger.Error("Failed to fetch task for deletion", zap.Int64("taskId", taskId), zap.Int64("userId", userID), zap.Error(err))
-
-		c.Set("response", nil)
-		c.Set("message", "could not fetch task")
-		c.Set("error", true)
-		c.Status(http.StatusInternalServerError)
+		utils.SetResponse(c, nil, "could not fetch task", true, http.StatusInternalServerError)
 		return
 	}
 
 	if task.UserID != userID {
 		utils.Logger.Warn("User not authorized to delete task", zap.Int64("taskId", taskId), zap.Int64("userId", userID))
-
-		c.Set("response", nil)
-		c.Set("message", "not authorized to delete")
-		c.Set("error", true)
-		c.Status(http.StatusUnauthorized)
+		utils.SetResponse(c, nil, "not authorized to delete", true, http.StatusUnauthorized)
 		return
 	}
-	
+
 	err = dao.Delete(task)
 	if err != nil {
 		utils.Logger.Error("Failed to delete task", zap.Int64("taskId", taskId), zap.Error(err))
-
-		c.Set("response", nil)
-		c.Set("message", "could not delete task")
-		c.Set("error", true)
-		c.Status(http.StatusInternalServerError)
+		utils.SetResponse(c, nil, "could not delete task", true, http.StatusInternalServerError)
 		return
 	}
 
 	utils.Logger.Info("Task deleted successfully", zap.Int64("taskId", taskId), zap.Int64("userId", userID))
-	
-	c.Set("response", nil)
-	c.Set("message", "task deleted successfully")
-	c.Set("error", false)
-	c.Status(http.StatusOK)
+	utils.SetResponse(c, nil, "task deleted successfully", false, http.StatusOK)
 }
