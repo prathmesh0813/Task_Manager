@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"go.uber.org/zap"
+	"github.com/gin-contrib/cors"
 )
 
 func main() {
@@ -26,6 +27,8 @@ func main() {
 
 	server := gin.Default()
 	utils.Logger.Info("Server initialized")
+
+	server.Use(cors.Default())
 
 	routes.RegisterRoutes(server)
 	utils.Logger.Info("Routes registered")
