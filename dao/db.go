@@ -16,7 +16,7 @@ var DB *gorm.DB
 type User struct {
 	ID       int64  `gorm:"primaryKey;autoIncrement"`
 	Name     string `gorm:"not null"`
-	MobileNo string  `gorm:"not null"`
+	MobileNo string `gorm:"not null"`
 	Gender   string `gorm:"not null"`
 	Email    string `gorm:"not null;unique"`
 }
@@ -65,7 +65,7 @@ func InitDB() {
 
 	DB, err = gorm.Open(mysql.Open(os.Getenv("DB_URL")), &gorm.Config{})
 	if err != nil {
-		utils.Logger.Fatal("Could not connect to database", zap.Error(err))
+		utils.Logger.Fatal("Could connect  to database.", zap.Error(err))
 	}
 
 	createTables()
