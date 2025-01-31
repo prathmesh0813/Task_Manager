@@ -9,7 +9,7 @@ import (
 )
 
 // ValidateDetails validates name, email, mobile, gender, and password.
-func ValidateDetails(name, email string, mobile, gender, password, confirmPassword string) error {
+func ValidateDetails(name, email string, mobile, gender, password string) error {
 	// Validate name
 	if len(name) < 2 {
 		return errors.New("name must be at least 2 characters long")
@@ -50,10 +50,6 @@ func ValidateDetails(name, email string, mobile, gender, password, confirmPasswo
 	if !hasUpper || !hasLower || !hasDigit || !hasSpecial {
 
 		return errors.New("password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character")
-	}
-	// Validate confirm password
-	if password != confirmPassword {
-		return errors.New("password and confirm password are not equal")
 	}
 	return nil
 

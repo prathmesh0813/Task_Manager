@@ -28,7 +28,7 @@ func SignUp(c *gin.Context) {
 	}
 
 	//validate User credentials
-	err = utils.ValidateDetails(user.Name, user.Email, user.Mobile_No, user.Gender, user.Password, user.Confirm_Password)
+	err = utils.ValidateDetails(user.Name, user.Email, user.Mobile_No, user.Gender, user.Password)
 	if err != nil {
 		utils.Logger.Error("User details not validate", zap.Error(err), zap.Int64("userId", user.ID))
 		utils.SetResponse(c, requestId, nil, err.Error(), true, http.StatusBadRequest)
