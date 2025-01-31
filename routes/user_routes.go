@@ -8,7 +8,7 @@ import (
 )
 
 func UserRoutes(server *gin.Engine) {
-	route := server.Group("/user")
+	route := server.Group("/user", middlewares.RequestID())
 
 	route.POST("/signup", controller.SignUp, middlewares.ResponseFormatter())
 	route.POST("/signin", controller.SignIn, middlewares.ResponseFormatter())

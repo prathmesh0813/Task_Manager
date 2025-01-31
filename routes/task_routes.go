@@ -8,7 +8,7 @@ import (
 )
 
 func TaskRoutes(server *gin.Engine) {
-	route := server.Group("/")
+	route := server.Group("/", middlewares.RequestID())
 
 	route.POST("/tasks", middlewares.Authenticate, controller.CreateTask, middlewares.ResponseFormatter())
 	route.GET("/tasks/:id", middlewares.Authenticate, controller.GetTask, middlewares.ResponseFormatter())
