@@ -3,21 +3,20 @@ package middlewares
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"task_manager/dao"
+	"task_manager/logger"
 	"task_manager/utils"
 
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 )
-
-
 
 // Checks whether the user is authenticated to perform the action
 func Authenticate(c *gin.Context) {
 	token := c.Request.Header.Get("Authorization")
 	if token == "" {
-		utils.Logger.Warn("Authorization token is missing", zap.String("method", c.Request.Method), zap.String("url", c.Request.URL.String()))
+		logger.Warn("authorization-request-id", "Authorization token is missing", c.Request.Method, c.Request.URL.String())
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Not Authorized", "error": true, "data": nil})
 		return
 	}
@@ -26,14 +25,15 @@ func Authenticate(c *gin.Context) {
 
 	userId, err := utils.VerifyJwtToken(token)
 	if err != nil {
-		utils.Logger.Error("Failed to verify user token", zap.Error(err))
+		logger.Error("", "failed to verify user token", err.Error())
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Not Authorized", "error": true, "data": nil})
 		return
 	}
+
 	c.Set("token", token)
 	c.Set("userId", userId)
 
-	utils.Logger.Info("User authentication successfully", zap.String("userId", fmt.Sprintf("%d", userId)))
+	logger.Info("requestID", "user authenticated successfully", strconv.Itoa(int(userId)))
 	c.Next()
 }
 
@@ -47,7 +47,7 @@ func CheckTokenPresent(c *gin.Context) error {
 
 	err := dao.DB.Where("user_token = ? ", token).First(&dbToken).Error
 	if err != nil {
-		utils.Logger.Warn("Session expired or token not found", zap.Error(err))
+		logger.Warn("requestID", "session expired or token not found", err.Error())
 		c.Set("response", nil)
 		c.Set("message", "Session Expired.User has to log in")
 		c.Set("error", true)
@@ -55,7 +55,7 @@ func CheckTokenPresent(c *gin.Context) error {
 
 	}
 
-	utils.Logger.Info("Token found in database", zap.String("tokenID", fmt.Sprintf("%d", dbToken.ID)))
+	logger.Info("requestID", "token found in the database", strconv.Itoa(int(dbToken.ID)))
 	return err
 }
 
@@ -63,8 +63,8 @@ func CheckTokenPresent(c *gin.Context) error {
 func CheckRefreshToken(context *gin.Context) error {
 	refreshToken := context.Request.Header.Get("Refresh-Token")
 	if refreshToken == "" {
-		utils.Logger.Error("Refresh token is missing in request header")
-		context.JSON(http.StatusUnauthorized, gin.H{"message": "Refresh token required", "error": true, "data": nil})
+		logger.Error("requestID", "Refresh token missing", "error")
+		context.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Refresh token required", "error": true, "data": nil})
 		return fmt.Errorf("refresh token missing")
 	}
 
@@ -72,11 +72,11 @@ func CheckRefreshToken(context *gin.Context) error {
 
 	err := dao.DB.Where("refresh_token = ?", refreshToken).First(&dbToken).Error
 	if err != nil {
-		utils.Logger.Error("Session expired or refresh token not found", zap.Error(err))
+		logger.Error("requestID", "session expired or refresh token not found", err.Error())
 		context.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Invalid or expired refresh token", "error": true, "data": nil})
 		return err
 	}
 
-	utils.Logger.Info("Token found in the database", zap.String("tokenId", fmt.Sprintf("%d", dbToken.ID)))
+	logger.Info("requestID", "refresh token found in the database", strconv.Itoa(int(dbToken.ID)))
 	return err
 }

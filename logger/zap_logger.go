@@ -1,4 +1,4 @@
-package utils
+package logger
 
 import (
 	"fmt"
@@ -48,15 +48,16 @@ func InitLogger() {
 	multiWriter := zapcore.NewMultiWriteSyncer(writer, fileWriter)
 
 	encoderConfig := zapcore.EncoderConfig{
-		MessageKey:     "message",
-		LevelKey:       "level",
-		TimeKey:        "time",
-		CallerKey:      "caller",
-		LineEnding:     zapcore.DefaultLineEnding,
-		EncodeLevel:    CustomColorEncoder,
-		EncodeTime:     zapcore.ISO8601TimeEncoder,
-		EncodeCaller:   zapcore.ShortCallerEncoder,
-		EncodeDuration: zapcore.StringDurationEncoder,
+		MessageKey:       "message",
+		LevelKey:         "level",
+		TimeKey:          "time",
+		CallerKey:        "caller",
+		LineEnding:       zapcore.DefaultLineEnding,
+		EncodeLevel:      CustomColorEncoder,
+		EncodeTime:       zapcore.ISO8601TimeEncoder,
+		EncodeCaller:     zapcore.ShortCallerEncoder,
+		EncodeDuration:   zapcore.StringDurationEncoder,
+		ConsoleSeparator: " | ",
 	}
 
 	core := zapcore.NewCore(

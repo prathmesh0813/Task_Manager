@@ -2,38 +2,37 @@ package main
 
 import (
 	"task_manager/dao"
+	"task_manager/logger"
 	"task_manager/routes"
-	"task_manager/utils"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
-	"go.uber.org/zap"
-	"github.com/gin-contrib/cors"
 )
 
 func main() {
 	err := godotenv.Load()
 	if err != nil {
-		utils.Logger.Fatal("Error loading .env file")
+		logger.Error("", "failed to load .env file", err.Error())
 	}
 
-	utils.InitLogger()
-	defer utils.InitLogger()
+	logger.InitLogger()
+	defer logger.InitLogger()
 
-	utils.Logger.Info("Starting the application...")
+	logger.Info("", "Starting the application")
 
 	dao.InitDB()
-	utils.Logger.Info("Database connection initialized")
+	logger.Info("", "Database connection initialized")
 
 	server := gin.Default()
-	utils.Logger.Info("Server initialized")
+	logger.Info("", "Server initialized successfully")
 
 	server.Use(cors.Default())
 
 	routes.RegisterRoutes(server)
-	utils.Logger.Info("Routes registered")
+	logger.Info("", "Routes registered successfully")
 
 	if err := server.Run(":8080"); err != nil {
-		utils.Logger.Fatal("Failed to start the server", zap.Error(err))
+		logger.Error("", "failed to start the server", err.Error())
 	}
 }
