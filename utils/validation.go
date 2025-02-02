@@ -9,7 +9,7 @@ import (
 )
 
 // ValidateDetails validates name, email, mobile, gender, and password.
-func ValidateDetails(name, email string, mobile, gender, password string) error {
+func ValidateDetails(name, email, mobile, gender, password string) error {
 	// Validate name
 	if len(name) < 2 {
 		return errors.New("name must be at least 2 characters long")
