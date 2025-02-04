@@ -2,12 +2,12 @@ package models
 
 // User Struct for request body
 type User struct {
-	ID               int64
-	Name             string `json:"name"`
-	Mobile_No        string  `json:"mob_no"`
-	Gender           string `json:"gender"`
-	Email            string `json:"email"`
-	Password         string `json:"password"`
+	ID        int64
+	Name      string `json:"name"`
+	Mobile_No string `json:"mob_no"`
+	Gender    string `json:"gender"`
+	Email     string `json:"email"`
+	Password  string `json:"password"`
 }
 
 type Login struct {
@@ -29,7 +29,7 @@ type UserResponse struct {
 // Request struct to update user details
 type UpdateUserRequest struct {
 	Name      string `json:"name" binding:"required"`
-	Mobile_No int64  `json:"mobile_no" binding:"required"`
+	Mobile_No string `json:"mobile_no" binding:"required"`
 }
 
 // Request struct to update user password

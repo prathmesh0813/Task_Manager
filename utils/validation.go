@@ -3,7 +3,6 @@ package utils
 import (
 	"errors"
 	"regexp"
-	"strconv"
 	"strings"
 	"unicode"
 )
@@ -56,7 +55,7 @@ func ValidateDetails(name, email, mobile, gender, password string) error {
 }
 
 // Validated user details
-func ValidateUser(name string, mobileno int64) error {
+func ValidateUser(name string, mobileno string) error {
 	// Validate name
 	if len(name) < 2 {
 		return errors.New("name must be at least 2 characters long")
@@ -67,8 +66,7 @@ func ValidateUser(name string, mobileno int64) error {
 
 	// Validate mobile
 
-	mobileStr := strconv.FormatInt(mobileno, 10)
-	if len(mobileStr) != 10 || !regexp.MustCompile(`^\d{10}$`).Match([]byte(mobileStr)) {
+	if len(mobileno) != 10 || !regexp.MustCompile(`^\d{10}$`).Match([]byte(mobileno)) {
 		return errors.New("mobile number must be 10 digits")
 	}
 
