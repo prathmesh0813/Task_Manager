@@ -20,7 +20,7 @@ type Login struct {
 // Response struct for Userdetails
 type UserResponse struct {
 	Name      string
-	Mobile_No int64
+	Mobile_No string
 	Gender    string
 	Email     string
 	Avatar    string
