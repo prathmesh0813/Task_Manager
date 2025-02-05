@@ -57,8 +57,8 @@ func SignUp(c *gin.Context) {
 	//Save tokens
 	uid, userToken, refreshToken, err := dao.SaveUser(dao.DB, &user)
 	if err != nil {
-		logger.Error(requestID, "failed to save the tokens", err.Error(), "userID: "+strconv.Itoa(int(user.ID)), requestBody)
-		utils.SetResponse(c, requestID, nil, "failed to save the tokens", true, http.StatusInternalServerError)
+		logger.Error(requestID, "Unable to save user.User already exists.", err.Error(), "userID: "+strconv.Itoa(int(user.ID)), requestBody)
+		utils.SetResponse(c, requestID, nil, "Unable to save user.User already exists.", true, http.StatusInternalServerError)
 		return
 	}
 
