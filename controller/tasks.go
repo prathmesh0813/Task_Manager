@@ -183,17 +183,6 @@ func UpdateTask(c *gin.Context) {
 		return
 	}
 
-	// var updatedTask models.Task
-
-	// err = c.ShouldBindJSON(&updatedTask)
-	// if err != nil {
-	// 	logger.Error(requestID, "failed to bind json", err.Error(), requestBody)
-	// 	utils.SetResponse(c, requestID, nil, "could not parse request", true, http.StatusBadRequest)
-	// 	return
-	// }
-
-	// updatedTask.ID = taskId
-
 	if task.Completed == "false" {
 		task.Completed = "true"
 	}
