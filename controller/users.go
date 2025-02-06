@@ -149,7 +149,7 @@ func GetUser(c *gin.Context) {
 	user.Avatar = "/user/avatar/" + strconv.FormatInt(userId.(int64), 10)
 
 	logger.Info(requestID, "User fetched successfully", "userID: "+strconv.Itoa(int(userId.(int64))))
-	utils.SetResponse(c, requestID, gin.H{"user": user}, "user fetched successfully", false, http.StatusOK)
+	utils.SetResponse(c, requestID, user, "user fetched successfully", false, http.StatusOK)
 
 }
 
