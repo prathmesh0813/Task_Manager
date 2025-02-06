@@ -19,11 +19,11 @@ type Login struct {
 
 // Response struct for Userdetails
 type UserResponse struct {
-	Name      string
-	Mobile_No int64
-	Gender    string
-	Email     string
-	Avatar    string
+	Name      string `json:"name"`
+	Mobile_No string `json:"mobile_no"`
+	Gender    string `json:"gender"`
+	Email     string `json:"email"`
+	Avatar    string `json:"avatar"`
 }
 
 // Request struct to update user details
