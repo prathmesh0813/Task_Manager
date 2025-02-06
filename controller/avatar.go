@@ -110,7 +110,7 @@ func ReadAvatar(c *gin.Context) {
 	}
 
 	logger.Info(requestID, "avatar fetched successfully")
-	c.Data(http.StatusOK, "image/jpg", avatar.Data)
+	utils.SetResponse(c, requestID, string(avatar.Data), "Avatar fetch successfully", false, http.StatusOK)
 }
 
 // delete user avatar

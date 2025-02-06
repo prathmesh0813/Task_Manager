@@ -6,11 +6,11 @@ WORKDIR /app
 
 
 
-# # Install required dependencies for CGO
-# RUN apk add --no-cache gcc musl-dev
+# Install required dependencies for CGO
+RUN apk add --no-cache gcc musl-dev
 
-# # Set CGO enabled
-# ENV CGO_ENABLED=1
+# Set CGO enabled
+ENV CGO_ENABLED=1
 
 # Copy go.mod and go.sum
 COPY go.mod go.sum ./
