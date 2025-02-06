@@ -58,7 +58,7 @@ func SignUp(c *gin.Context) {
 	uid, userToken, refreshToken, err := dao.SaveUser(dao.DB, &user)
 	if err != nil {
 		logger.Error(requestID, "Unable to save user.User already exists.", err.Error(), "userID: "+strconv.Itoa(int(user.ID)), requestBody)
-		utils.SetResponse(c, requestID, nil, "Unable to save user.User already exists.", true, http.StatusInternalServerError)
+		utils.SetResponse(c, requestID, nil, "Unable to save user.User already exists.", true, http.StatusBadRequest)
 		return
 	}
 
@@ -105,7 +105,7 @@ func SignIn(c *gin.Context) {
 	userToken, refreshToken, err := utils.GenerateTokens(login.ID)
 	if err != nil {
 		logger.Error(requestID, "failed to generate tokens", "userID: "+strconv.Itoa(int(login.ID)), err.Error(), requestBody)
-		utils.SetResponse(c, requestID, nil, "user login failed", true, http.StatusInternalServerError)
+		utils.SetResponse(c, requestID, nil, "user login failed", true, http.StatusBadRequest)
 		return
 	}
 
@@ -113,7 +113,7 @@ func SignIn(c *gin.Context) {
 	err = dao.SaveToken(login.ID, userToken, refreshToken)
 	if err != nil {
 		logger.Error(requestID, "failed to save tokens", "userID: "+strconv.Itoa(int(login.ID)), err.Error(), requestBody)
-		utils.SetResponse(c, requestID, nil, "user login failed", true, http.StatusInternalServerError)
+		utils.SetResponse(c, requestID, nil, "user login failed", true, http.StatusBadRequest)
 		return
 	}
 
@@ -142,7 +142,7 @@ func GetUser(c *gin.Context) {
 	user, err := dao.GetUserById(userId.(int64))
 	if err != nil {
 		logger.Error(requestID, "could not fetch user", err.Error(), "userID: "+strconv.Itoa(int(userId.(int64))))
-		utils.SetResponse(c, requestID, nil, "could not fetch user", true, http.StatusInternalServerError)
+		utils.SetResponse(c, requestID, nil, "could not fetch user", true, http.StatusBadRequest)
 		return
 	}
 
@@ -174,7 +174,7 @@ func RefreshTokenHandler(c *gin.Context) {
 		err = dao.DeleteRefreshToken(refreshToken)
 		if err != nil {
 			logger.Error(requestID, "failed to delete refresh token", err.Error())
-			utils.SetResponse(c, requestID, nil, "failed to delete refresh token", true, http.StatusNotFound)
+			utils.SetResponse(c, requestID, nil, "failed to delete refresh token", true, http.StatusBadRequest)
 			return
 		}
 
@@ -187,21 +187,21 @@ func RefreshTokenHandler(c *gin.Context) {
 	newUserToken, newRefreshToken, err := utils.GenerateTokens(userId)
 	if err != nil {
 		logger.Error(requestID, "failed to generate tokens", "userID: "+strconv.Itoa(int(userId)), err.Error())
-		utils.SetResponse(c, requestID, nil, "user login failed", true, http.StatusInternalServerError)
+		utils.SetResponse(c, requestID, nil, "user login failed", true, http.StatusBadRequest)
 		return
 	}
 
 	err = dao.SaveToken(userId, newUserToken, newRefreshToken)
 	if err != nil {
 		logger.Error(requestID, "could not save token", "userID: "+strconv.Itoa(int(userId)), err.Error())
-		utils.SetResponse(c, requestID, nil, "could not save tokens", true, http.StatusInternalServerError)
+		utils.SetResponse(c, requestID, nil, "could not save tokens", true, http.StatusBadRequest)
 		return
 	}
 
 	err = dao.DeleteRefreshToken(refreshToken)
 	if err != nil {
 		logger.Error(requestID, "failed to delete refresh token", "userID: "+strconv.Itoa(int(userId)), err.Error())
-		utils.SetResponse(c, requestID, nil, "failed to delete refresh token", true, http.StatusNotFound)
+		utils.SetResponse(c, requestID, nil, "failed to delete refresh token", true, http.StatusBadRequest)
 		return
 	}
 
@@ -250,7 +250,7 @@ func UpdateUser(c *gin.Context) {
 	err = dao.UpdateUserDetails(userId.(int64), req)
 	if err != nil {
 		logger.Error(requestID, "failed to update user", err.Error(), "userID: "+strconv.Itoa(int(userId.(int64))), requestBody)
-		utils.SetResponse(c, requestID, nil, "failed to update user", true, http.StatusInternalServerError)
+		utils.SetResponse(c, requestID, nil, "failed to update user", true, http.StatusBadRequest)
 		return
 	}
 
@@ -298,7 +298,7 @@ func UpdatePassword(c *gin.Context) {
 	user, err := dao.GetUserByIdPassChng(userIdFromToken.(int64))
 	if err != nil {
 		logger.Error(requestID, "User not found", err.Error(), "userID: "+strconv.Itoa(int(userIdFromToken.(int64))))
-		utils.SetResponse(c, requestID, nil, "user not found", true, http.StatusNotFound)
+		utils.SetResponse(c, requestID, nil, "user not found", true, http.StatusBadRequest)
 		return
 	}
 
@@ -314,7 +314,7 @@ func UpdatePassword(c *gin.Context) {
 	hashedPassword, err := utils.HashPassword(req.NewPassword)
 	if err != nil {
 		logger.Error(requestID, "failed to hashed password", err.Error(), "userID: "+strconv.Itoa(int(userIdFromToken.(int64))))
-		utils.SetResponse(c, requestID, nil, "failed to hashed password", true, http.StatusInternalServerError)
+		utils.SetResponse(c, requestID, nil, "failed to hashed password", true, http.StatusBadRequest)
 		return
 	}
 
@@ -322,7 +322,7 @@ func UpdatePassword(c *gin.Context) {
 	err = dao.UpdatePassById(userIdFromToken.(int64), hashedPassword)
 	if err != nil {
 		logger.Error(requestID, "failed to update password", err.Error(), "userID: "+strconv.Itoa(int(userIdFromToken.(int64))))
-		utils.SetResponse(c, requestID, nil, "failed to update password", true, http.StatusInternalServerError)
+		utils.SetResponse(c, requestID, nil, "failed to update password", true, http.StatusBadRequest)
 		return
 	}
 
@@ -330,7 +330,7 @@ func UpdatePassword(c *gin.Context) {
 	err = dao.DeleteTokenById(userIdFromToken.(int64), token)
 	if err != nil {
 		logger.Error(requestID, "failed to delete token", err.Error(), "userID: "+strconv.Itoa(int(userIdFromToken.(int64))))
-		utils.SetResponse(c, requestID, nil, "failed to delete token", true, http.StatusInternalServerError)
+		utils.SetResponse(c, requestID, nil, "failed to delete token", true, http.StatusBadRequest)
 		return
 	}
 

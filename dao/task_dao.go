@@ -7,6 +7,10 @@ import (
 
 // save task in db
 func SaveTask(t *models.Task) error {
+	// Ensure default value of Completed is false
+	// if !t.Completed {
+	// 	t.Completed = false
+	// }
 	result := DB.Create(&t)
 	if result.Error != nil {
 		return result.Error

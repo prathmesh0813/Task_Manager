@@ -40,6 +40,12 @@ func CreateTask(c *gin.Context) {
 	userId := c.GetInt64("userId")
 	task.UserID = userId
 
+	// If Completed is not set, set it to false
+	// if task.Completed == nil {
+	// 	falseVal := false
+	// 	task.Completed = &falseVal
+	// }
+
 	logger.Info(requestID, "Recieved task creation request", "userID: "+strconv.Itoa(int(userId)), requestBody)
 
 	//save task in db
@@ -82,7 +88,7 @@ func GetTask(c *gin.Context) {
 	task, err := dao.GetTaskByID(taskId, userId.(int64))
 	if err != nil {
 		logger.Error(requestID, "Failed to fetch task or access denied", "userID: "+strconv.Itoa(int(userId.(int64))), "taskID: "+strconv.Itoa(int(taskId)), err.Error())
-		utils.SetResponse(c, requestID, nil, "could not fetch task or access denied", true, http.StatusInternalServerError)
+		utils.SetResponse(c, requestID, nil, "could not fetch task or access denied", true, http.StatusBadRequest)
 		return
 	}
 
@@ -129,7 +135,7 @@ func GetTasksByQuery(c *gin.Context) {
 	tasks, totalTasks, err := dao.GetTasksWithFilters(userId.(int64), sortOrder, completed, limit, offset)
 	if err != nil {
 		logger.Error(requestID, "failed to fetch tasks", "userID: "+strconv.Itoa(int(userId.(int64))), err.Error())
-		utils.SetResponse(c, requestID, nil, "could not fetch tasks", true, http.StatusInternalServerError)
+		utils.SetResponse(c, requestID, nil, "could not fetch tasks", true, http.StatusBadRequest)
 		return
 	}
 
@@ -167,7 +173,7 @@ func UpdateTask(c *gin.Context) {
 	task, err := dao.GetTaskByID(taskId, userID)
 	if err != nil {
 		logger.Error(requestID, "failed to fetch task", "userID: "+strconv.Itoa(int(userID)), "taskID: "+strconv.Itoa(int(taskId)), err.Error(), requestBody)
-		utils.SetResponse(c, requestID, nil, "could not fetch task", true, http.StatusInternalServerError)
+		utils.SetResponse(c, requestID, nil, "could not fetch task", true, http.StatusBadRequest)
 		return
 	}
 
@@ -177,21 +183,25 @@ func UpdateTask(c *gin.Context) {
 		return
 	}
 
-	var updatedTask models.Task
+	// var updatedTask models.Task
 
-	err = c.ShouldBindJSON(&updatedTask)
-	if err != nil {
-		logger.Error(requestID, "failed to bind json", err.Error(), requestBody)
-		utils.SetResponse(c, requestID, nil, "could not parse request", true, http.StatusBadRequest)
-		return
+	// err = c.ShouldBindJSON(&updatedTask)
+	// if err != nil {
+	// 	logger.Error(requestID, "failed to bind json", err.Error(), requestBody)
+	// 	utils.SetResponse(c, requestID, nil, "could not parse request", true, http.StatusBadRequest)
+	// 	return
+	// }
+
+	// updatedTask.ID = taskId
+
+	if task.Completed == "false" {
+		task.Completed = "true"
 	}
 
-	updatedTask.ID = taskId
-
-	err = dao.Update(&updatedTask)
+	err = dao.Update(task)
 	if err != nil {
 		logger.Error(requestID, "failed to update task", "taskID: "+strconv.Itoa(int(taskId)), err.Error(), requestBody)
-		utils.SetResponse(c, requestID, nil, "could not update task", true, http.StatusInternalServerError)
+		utils.SetResponse(c, requestID, nil, "could not update task", true, http.StatusBadRequest)
 		return
 	}
 
@@ -219,7 +229,7 @@ func DeleteTask(c *gin.Context) {
 	task, err := dao.GetTaskByID(taskId, userID)
 	if err != nil {
 		logger.Error(requestID, "failed to fetch task for deletion", "userID: "+strconv.Itoa(int(userID)), "taskID: "+strconv.Itoa(int(taskId)), err.Error())
-		utils.SetResponse(c, requestID, nil, "could not fetch task", true, http.StatusInternalServerError)
+		utils.SetResponse(c, requestID, nil, "could not fetch task", true, http.StatusBadRequest)
 		return
 	}
 
@@ -232,7 +242,7 @@ func DeleteTask(c *gin.Context) {
 	err = dao.Delete(task)
 	if err != nil {
 		logger.Error(requestID, "failed to delete task", "taskID: "+strconv.Itoa(int(taskId)), err.Error())
-		utils.SetResponse(c, requestID, nil, "could not delete task", true, http.StatusInternalServerError)
+		utils.SetResponse(c, requestID, nil, "could not delete task", true, http.StatusBadRequest)
 		return
 	}
 

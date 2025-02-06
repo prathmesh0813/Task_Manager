@@ -7,9 +7,8 @@ type Task struct {
 	ID          int64  `json:"id"`
 	Title       string `json:"title"`
 	Description string `json:"description"`
-	Completed   string `json:"completed" binding:"required"`
+	Completed   string `gorm:"default:false" json:"completed"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 	UserID      int64 `json:"userId"`
 }
-

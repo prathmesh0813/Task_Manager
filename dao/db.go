@@ -50,12 +50,12 @@ type Avatar struct {
 // Task DB schema
 type Task struct {
 	ID          int64  `json:"id"`
-	Title       string ` json:"title" `
-	Description string `json:"description" `
+	Title       string ` json:"title"`
+	Description string `json:"description"`
+	Completed   string `gorm:"default:false" json:"completed"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
-	Completed   string `json:"completed" binding:"required"`
-	UserID      int64  ` json:"userId"`
+	UserID      int64 ` json:"userId"`
 }
 
 func InitDB() {

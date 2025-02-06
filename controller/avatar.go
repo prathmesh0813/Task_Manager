@@ -52,14 +52,14 @@ func UploadAvatar(c *gin.Context) {
 	file, err := fileHeader.Open()
 	if err != nil {
 		logger.Error(requestID, "failed to open uploaded file", err.Error(), "userID: "+strconv.Itoa(int(userId.(int64))))
-		utils.SetResponse(c, requestID, nil, "failed to open uploaded file", true, http.StatusInternalServerError)
+		utils.SetResponse(c, requestID, nil, "failed to open uploaded file", true, http.StatusBadRequest)
 		return
 	}
 
 	content, err := io.ReadAll(file)
 	if err != nil {
 		logger.Error(requestID, "failed to read uploaded file", err.Error(), "userID: "+strconv.Itoa(int(userId.(int64))))
-		utils.SetResponse(c, requestID, nil, "failed to read uploaded file", true, http.StatusInternalServerError)
+		utils.SetResponse(c, requestID, nil, "failed to read uploaded file", true, http.StatusBadRequest)
 		return
 	}
 
@@ -70,7 +70,7 @@ func UploadAvatar(c *gin.Context) {
 		err = dao.UpdateAvatar(userId.(int64), content)
 		if err != nil {
 			logger.Error(requestID, "failed to save avatar", err.Error(), "userID: "+strconv.Itoa(int(userId.(int64))))
-			utils.SetResponse(c, requestID, nil, "failed to save avatar", true, http.StatusInternalServerError)
+			utils.SetResponse(c, requestID, nil, "failed to save avatar", true, http.StatusBadRequest)
 			return
 		}
 
@@ -82,7 +82,7 @@ func UploadAvatar(c *gin.Context) {
 		err = dao.SaveAvatar(userId.(int64), content, fileName)
 		if err != nil {
 			logger.Error(requestID, "failed to upload avatar", err.Error(), "userID: "+strconv.Itoa(int(userId.(int64))))
-			utils.SetResponse(c, requestID, nil, "failed to upload avatar", true, http.StatusInternalServerError)
+			utils.SetResponse(c, requestID, nil, "failed to upload avatar", true, http.StatusBadRequest)
 			return
 		}
 	}
@@ -105,7 +105,7 @@ func ReadAvatar(c *gin.Context) {
 	avatar, err := dao.ReadAvatar(userId)
 	if err != nil {
 		logger.Error(requestID, "failed to read avatar", err.Error())
-		utils.SetResponse(c, requestID, nil, "failed to read avatar", true, http.StatusInternalServerError)
+		utils.SetResponse(c, requestID, nil, "failed to read avatar", true, http.StatusBadRequest)
 		return
 	}
 
@@ -131,14 +131,14 @@ func DeleteAvatar(c *gin.Context) {
 	_, err = dao.ReadAvatar(userId.(int64))
 	if err != nil {
 		logger.Error(requestID, "failed to read avatar", err.Error(), "userID: "+strconv.Itoa(int(userId.(int64))))
-		utils.SetResponse(c, requestID, nil, "no avatar present to delete", true, http.StatusInternalServerError)
+		utils.SetResponse(c, requestID, nil, "no avatar present to delete", true, http.StatusBadRequest)
 		return
 	}
 
 	err = dao.DeleteAvatar(userId.(int64))
 	if err != nil {
 		logger.Error(requestID, "failed to delete avatar", err.Error(), "userID: "+strconv.Itoa(int(userId.(int64))))
-		utils.SetResponse(c, requestID, nil, "failed to delete user avatar", true, http.StatusInternalServerError)
+		utils.SetResponse(c, requestID, nil, "failed to delete user avatar", true, http.StatusBadRequest)
 		return
 	}
 
