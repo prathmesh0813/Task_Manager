@@ -47,12 +47,7 @@ func CheckTokenPresent(c *gin.Context) error {
 
 	err := dao.DB.Where("user_token = ? ", token).First(&dbToken).Error
 	if err != nil {
-		logger.Warn("requestID", "session expired or token not found", err.Error())
-		c.Set("response", nil)
-		c.Set("message", "Session Expired.User has to log in")
-		c.Set("error", true)
-		c.Status(http.StatusNotFound)
-
+		return err
 	}
 
 	logger.Info("requestID", "token found in the database", strconv.Itoa(int(dbToken.ID)))
@@ -66,6 +61,7 @@ func CheckRefreshToken(context *gin.Context) error {
 		logger.Error("requestID", "Refresh token missing", "error")
 		context.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Refresh token required", "error": true, "data": nil})
 		return fmt.Errorf("refresh token missing")
+
 	}
 
 	var dbToken dao.Token

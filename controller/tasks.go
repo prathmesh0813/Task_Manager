@@ -23,9 +23,13 @@ func CreateTask(c *gin.Context) {
 	requestBody := string(bodyBytes)
 
 	c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+	userId := c.GetInt64("userId")
 
+	//checks whether user is signin or not
 	err := middlewares.CheckTokenPresent(c)
 	if err != nil {
+		logger.Warn(requestID, "session expired or token not found", "userID: "+strconv.Itoa(int(userId)))
+		utils.SetResponse(c, requestID, nil, "session expired or token not found", true, http.StatusBadRequest)
 		return
 	}
 
@@ -37,7 +41,6 @@ func CreateTask(c *gin.Context) {
 		return
 	}
 
-	userId := c.GetInt64("userId")
 	task.UserID = userId
 
 	// If Completed is not set, set it to false
@@ -64,15 +67,17 @@ func CreateTask(c *gin.Context) {
 func GetTask(c *gin.Context) {
 	requestID := requestid.Get(c)
 
-	err := middlewares.CheckTokenPresent(c)
-	if err != nil {
-		return
-	}
-
 	userId, exists := c.Get("userId")
 	if !exists {
 		logger.Error(requestID, "User Id not found in context", "userID: "+strconv.Itoa(int(userId.(int64))))
 		utils.SetResponse(c, requestID, nil, "user id not found", true, http.StatusUnauthorized)
+		return
+	}
+	//checks whether user is signin or not
+	err := middlewares.CheckTokenPresent(c)
+	if err != nil {
+		logger.Warn(requestID, "session expired or token not found", "userID: "+strconv.Itoa(int(userId.(int64))))
+		utils.SetResponse(c, requestID, nil, "session expired or token not found", true, http.StatusBadRequest)
 		return
 	}
 
@@ -100,15 +105,17 @@ func GetTask(c *gin.Context) {
 func GetTasksByQuery(c *gin.Context) {
 	requestID := requestid.Get(c)
 
-	err := middlewares.CheckTokenPresent(c)
-	if err != nil {
-		return
-	}
-
 	userId, exists := c.Get("userId")
 	if !exists {
 		logger.Warn(requestID, "Unauthorized", "userID: "+strconv.Itoa(int(userId.(int64))))
 		utils.SetResponse(c, requestID, nil, "not authorized", true, http.StatusUnauthorized)
+		return
+	}
+	//checks whether user is signin or not
+	err := middlewares.CheckTokenPresent(c)
+	if err != nil {
+		logger.Warn(requestID, "session expired or token not found", "userID: "+strconv.Itoa(int(userId.(int64))))
+		utils.SetResponse(c, requestID, nil, "session expired or token not found", true, http.StatusBadRequest)
 		return
 	}
 
@@ -156,19 +163,20 @@ func UpdateTask(c *gin.Context) {
 
 	c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 
+	userID := c.GetInt64("userId")
+	//checks whether user is signin or not
 	err := middlewares.CheckTokenPresent(c)
 	if err != nil {
+		logger.Warn(requestID, "session expired or token not found", "userID: "+strconv.Itoa(int(userID)))
+		utils.SetResponse(c, requestID, nil, "session expired or token not found", true, http.StatusBadRequest)
 		return
 	}
-
 	taskId, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
 		logger.Error(requestID, "failed to parse task id", c.Param("id"), err.Error(), requestBody)
 		utils.SetResponse(c, requestID, nil, "could not parse task id", true, http.StatusBadRequest)
 		return
 	}
-
-	userID := c.GetInt64("userId")
 
 	task, err := dao.GetTaskByID(taskId, userID)
 	if err != nil {
@@ -201,8 +209,12 @@ func UpdateTask(c *gin.Context) {
 // delete task
 func DeleteTask(c *gin.Context) {
 	requestID := requestid.Get(c)
+	userID := c.GetInt64("userId")
+	//checks whether user is signin or not
 	err := middlewares.CheckTokenPresent(c)
 	if err != nil {
+		logger.Warn(requestID, "session expired or token not found", "userID: "+strconv.Itoa(int(userID)))
+		utils.SetResponse(c, requestID, nil, "session expired or token not found", true, http.StatusBadRequest)
 		return
 	}
 
@@ -212,8 +224,6 @@ func DeleteTask(c *gin.Context) {
 		utils.SetResponse(c, requestID, nil, "could not parse data", true, http.StatusBadRequest)
 		return
 	}
-
-	userID := c.GetInt64("userId")
 
 	task, err := dao.GetTaskByID(taskId, userID)
 	if err != nil {

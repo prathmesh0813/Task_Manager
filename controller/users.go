@@ -125,16 +125,18 @@ func SignIn(c *gin.Context) {
 func GetUser(c *gin.Context) {
 	requestID := requestid.Get(c)
 
-	//checks whether user is signin or not
-	err := middlewares.CheckTokenPresent(c)
-	if err != nil {
-		return
-	}
-
 	userId, exists := c.Get("userId")
 	if !exists {
 		logger.Warn(requestID, "Unauthorized, user not authenticated", "userID: "+strconv.Itoa(int(userId.(int64))))
 		utils.SetResponse(c, requestID, nil, "unauthorized, user not authenticated", true, http.StatusUnauthorized)
+		return
+	}
+
+	//checks whether user is signin or not
+	err := middlewares.CheckTokenPresent(c)
+	if err != nil {
+		logger.Warn(requestID, "session expired or token not found", "userID: "+strconv.Itoa(int(userId.(int64))))
+		utils.SetResponse(c, requestID, nil, "session expired or token not found", true, http.StatusBadRequest)
 		return
 	}
 
@@ -158,6 +160,8 @@ func RefreshTokenHandler(c *gin.Context) {
 	// Get the refresh token from the request header
 	err := middlewares.CheckRefreshToken(c)
 	if err != nil {
+		logger.Error(requestID, "refresh token required", "")
+		utils.SetResponse(c, requestID, nil, "refresh token required", true, http.StatusUnauthorized)
 		return
 	}
 
@@ -220,15 +224,17 @@ func UpdateUser(c *gin.Context) {
 
 	c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 
-	err := middlewares.CheckTokenPresent(c)
-	if err != nil {
-		return
-	}
-
 	userId, exists := c.Get("userId")
 	if !exists {
 		logger.Warn(requestID, "Unauthorized, user not authenticated", "userID: "+strconv.Itoa(int(userId.(int64))), requestBody)
 		utils.SetResponse(c, requestID, nil, "unauthorized, user not authenticated", true, http.StatusUnauthorized)
+		return
+	}
+	//checks whether user is signin or not
+	err := middlewares.CheckTokenPresent(c)
+	if err != nil {
+		logger.Warn(requestID, "session expired or token not found", "userID: "+strconv.Itoa(int(userId.(int64))))
+		utils.SetResponse(c, requestID, nil, "session expired or token not found", true, http.StatusBadRequest)
 		return
 	}
 
@@ -263,21 +269,23 @@ func UpdateUser(c *gin.Context) {
 func UpdatePassword(c *gin.Context) {
 	requestID := requestid.Get(c)
 	var req models.UpdatePasswordRequest
-	err := middlewares.CheckTokenPresent(c)
-	if err != nil {
-		return
-	}
-
-	token := c.Request.Header.Get("Authorization")
-
-	token = strings.TrimPrefix(token, "Bearer ")
-
 	userIdFromToken, exists := c.Get("userId")
 	if !exists {
 		logger.Warn(requestID, "Unauthorized, user not authenticated", "userID: "+strconv.Itoa(int(userIdFromToken.(int64))))
 		utils.SetResponse(c, requestID, nil, "unauthorized, user not authenticated", true, http.StatusUnauthorized)
 		return
 	}
+	//checks whether user is signin or not
+	err := middlewares.CheckTokenPresent(c)
+	if err != nil {
+		logger.Warn(requestID, "session expired or token not found", "userID: "+strconv.Itoa(int(userIdFromToken.(int64))))
+		utils.SetResponse(c, requestID, nil, "session expired or token not found", true, http.StatusBadRequest)
+		return
+	}
+
+	token := c.Request.Header.Get("Authorization")
+
+	token = strings.TrimPrefix(token, "Bearer ")
 
 	// Bind JSON request to struct
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -343,8 +351,17 @@ func UpdatePassword(c *gin.Context) {
 func SignOut(c *gin.Context) {
 	requestID := requestid.Get(c)
 
+	//checks whether user is signin or not
 	err := middlewares.CheckTokenPresent(c)
+	userId, exists := c.Get("userId")
+	if !exists {
+		logger.Warn(requestID, "Unauthorized, user not authenticated", "userID: "+strconv.Itoa(int(userId.(int64))))
+		utils.SetResponse(c, requestID, nil, "unauthorized, user not authenticated", true, http.StatusUnauthorized)
+		return
+	}
 	if err != nil {
+		logger.Warn(requestID, "session expired or token not found", "userID: "+strconv.Itoa(int(userId.(int64))))
+		utils.SetResponse(c, requestID, nil, "session expired or token not found", true, http.StatusBadRequest)
 		return
 	}
 
@@ -352,13 +369,6 @@ func SignOut(c *gin.Context) {
 	if tokenString == "" {
 		logger.Error(requestID, "Unable to validate user details", "")
 		utils.SetResponse(c, requestID, nil, "token not provided", true, http.StatusUnauthorized)
-		return
-	}
-
-	userId, exists := c.Get("userId")
-	if !exists {
-		logger.Warn(requestID, "Unauthorized, user not authenticated", "userID: "+strconv.Itoa(int(userId.(int64))))
-		utils.SetResponse(c, requestID, nil, "unauthorized, user not authenticated", true, http.StatusUnauthorized)
 		return
 	}
 
