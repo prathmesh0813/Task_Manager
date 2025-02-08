@@ -22,12 +22,12 @@ func ValidateDetails(name, email, mobile, gender, password string) error {
 	}
 	// Validate mobile
 	if len(mobile) != 10 || !regexp.MustCompile(`^\d{10}$`).Match([]byte(mobile)) {
-		return errors.New("mobile number must be 10 digits")
+		return errors.New("mobile number must be exactly 10 digits and contain only numbers")
 	}
 	// Validate gender
 	gender = strings.ToLower(gender)
 	if gender != "male" && gender != "female" && gender != "other" {
-		return errors.New("gender must be 'male', 'female', or 'other'")
+		return errors.New("gender must be male, female or other")
 	}
 	// Validate password
 	var hasUpper, hasLower, hasDigit, hasSpecial bool
@@ -89,6 +89,35 @@ func ValidatePassword(password string) error {
 		}
 	}
 
+	if len(password) < 8 {
+		return errors.New("password must be at least 8 characters long")
+	}
+	if !hasUpper || !hasLower || !hasDigit || !hasSpecial {
+
+		return errors.New("password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character")
+	}
+	return nil
+}
+
+func ValidateLoginDetails(email, password string) error {
+	// Validate email
+	if !regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`).MatchString(email) {
+		return errors.New("invalid email format")
+	}
+	// Validate password
+	var hasUpper, hasLower, hasDigit, hasSpecial bool
+	for _, char := range password {
+		switch {
+		case unicode.IsUpper(char):
+			hasUpper = true
+		case unicode.IsLower(char):
+			hasLower = true
+		case unicode.IsDigit(char):
+			hasDigit = true
+		case unicode.IsPunct(char) || unicode.IsSymbol(char):
+			hasSpecial = true
+		}
+	}
 	if len(password) < 8 {
 		return errors.New("password must be at least 8 characters long")
 	}

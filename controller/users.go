@@ -93,7 +93,15 @@ func SignIn(c *gin.Context) {
 		return
 	}
 
-	//validate credentials
+	//Validate login details
+	err = utils.ValidateLoginDetails(login.Email, login.Password)
+	if err != nil {
+		logger.Error(requestID, "Unable to validate user details", err.Error(), "userID: "+strconv.Itoa(int(login.ID)), requestBody)
+		utils.SetResponse(c, requestID, nil, err.Error(), true, http.StatusBadRequest)
+		return
+	}
+
+	//validate credentials to check whether the user has aaccount or not
 	err = dao.ValidateCredentials(&login)
 	if err != nil {
 		logger.Warn(requestID, "Authentication failed", err.Error(), requestBody)
