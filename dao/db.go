@@ -1,10 +1,11 @@
 package dao
 
 import (
+	"os"
 	"task_manager/logger"
 	"time"
 
-	"gorm.io/driver/sqlite"
+	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
@@ -61,15 +62,10 @@ type Task struct {
 func InitDB() {
 	var err error
 
-	// DB, err = gorm.Open(mysql.Open(os.Getenv("DB_URL")), &gorm.Config{})
-	// if err != nil {
-	//
-	// 	logger.Error("requestID", "could not connect to database", err.Error())
-	// }
-
-	DB, err = gorm.Open(sqlite.Open("task.db"), &gorm.Config{})
+	DB, err = gorm.Open(mysql.Open(os.Getenv("DB_URL")), &gorm.Config{})
 	if err != nil {
-		logger.Error("requestid", "Could not connect to database", err.Error())
+
+		logger.Error("requestID", "could not connect to database", err.Error())
 	}
 
 	createTables()
