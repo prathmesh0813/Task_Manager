@@ -1,7 +1,6 @@
 package middlewares
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -59,8 +58,7 @@ func CheckRefreshToken(context *gin.Context) error {
 	refreshToken := context.Request.Header.Get("Refresh-Token")
 	if refreshToken == "" {
 		logger.Error("requestID", "Refresh token missing", "error")
-		context.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Refresh token required", "error": true, "data": nil})
-		return fmt.Errorf("refresh token missing")
+		return nil
 
 	}
 
@@ -69,10 +67,9 @@ func CheckRefreshToken(context *gin.Context) error {
 	err := dao.DB.Where("refresh_token = ?", refreshToken).First(&dbToken).Error
 	if err != nil {
 		logger.Error("requestID", "session expired or refresh token not found", err.Error())
-		context.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Invalid or expired refresh token", "error": true, "data": nil})
 		return err
 	}
 
 	logger.Info("requestID", "refresh token found in the database", strconv.Itoa(int(dbToken.ID)))
-	return err
+	return nil
 }

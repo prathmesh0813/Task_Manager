@@ -18,13 +18,16 @@ import (
 func UploadAvatar(c *gin.Context) {
 	requestID := requestid.Get(c)
 
+	userId, exists := c.Get("userId")
+
 	//check whether user is signin
 	err := middlewares.CheckTokenPresent(c)
 	if err != nil {
+		logger.Warn(requestID, "session expired or token not found", "userID: "+strconv.Itoa(int(userId.(int64))))
+		utils.SetResponse(c, requestID, nil, "session expired or token not found", true, http.StatusBadRequest)
 		return
 	}
 
-	userId, exists := c.Get("userId")
 	if !exists {
 		logger.Warn(requestID, "Unauthorized, user not authenticated", "userID: "+strconv.Itoa(int(userId.(int64))))
 		utils.SetResponse(c, requestID, nil, "unauthorized, user not authenticated", true, http.StatusUnauthorized)
@@ -116,12 +119,15 @@ func ReadAvatar(c *gin.Context) {
 // delete user avatar
 func DeleteAvatar(c *gin.Context) {
 	requestID := requestid.Get(c)
+	userId, exists := c.Get("userId")
+
 	err := middlewares.CheckTokenPresent(c)
 	if err != nil {
+		logger.Warn(requestID, "session expired or token not found", "userID: "+strconv.Itoa(int(userId.(int64))))
+		utils.SetResponse(c, requestID, nil, "session expired or token not found", true, http.StatusBadRequest)
 		return
 	}
 
-	userId, exists := c.Get("userId")
 	if !exists {
 		logger.Error(requestID, "User Id not found in context", "userID: "+strconv.Itoa(int(userId.(int64))))
 		utils.SetResponse(c, requestID, nil, "unauthorized, user not authenticated", true, http.StatusUnauthorized)

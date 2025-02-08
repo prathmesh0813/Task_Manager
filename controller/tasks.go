@@ -43,12 +43,6 @@ func CreateTask(c *gin.Context) {
 
 	task.UserID = userId
 
-	// If Completed is not set, set it to false
-	// if task.Completed == nil {
-	// 	falseVal := false
-	// 	task.Completed = &falseVal
-	// }
-
 	logger.Info(requestID, "Recieved task creation request", "userID: "+strconv.Itoa(int(userId)), requestBody)
 
 	//save task in db
