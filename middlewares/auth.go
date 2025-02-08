@@ -16,7 +16,7 @@ func Authenticate(c *gin.Context) {
 	token := c.Request.Header.Get("Authorization")
 	if token == "" {
 		logger.Warn("authorization-request-id", "Authorization token is missing", c.Request.Method, c.Request.URL.String())
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Not Authorized", "error": true, "data": nil})
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Authorization token is missing", "error": true, "data": nil})
 		return
 	}
 

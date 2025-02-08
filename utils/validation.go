@@ -67,15 +67,31 @@ func ValidateUser(name string, mobileno string) error {
 	// Validate mobile
 
 	if len(mobileno) != 10 || !regexp.MustCompile(`^\d{10}$`).Match([]byte(mobileno)) {
-		return errors.New("mobile number must be 10 digits")
+		return errors.New("mobile number must be exactly 10 digits and contain only numbers")
 	}
 
 	return nil
 }
 
-// Validate password
-func ValidatePassword(password string) error {
+// ValidatePassword checks if both old and new passwords meet complexity rules
+func ValidatePassword(oldPassword, newPassword string) error {
+	// Validate old password
+	if err := checkPasswordComplexity(oldPassword); err != nil {
+		return errors.New("old password: " + err.Error())
+	}
+
+	// Validate new password
+	if err := checkPasswordComplexity(newPassword); err != nil {
+		return errors.New("new password: " + err.Error())
+	}
+
+	return nil // Both passwords are valid
+}
+
+// checkPasswordComplexity enforces password strength rules
+func checkPasswordComplexity(password string) error {
 	var hasUpper, hasLower, hasDigit, hasSpecial bool
+
 	for _, char := range password {
 		switch {
 		case unicode.IsUpper(char):
@@ -89,14 +105,17 @@ func ValidatePassword(password string) error {
 		}
 	}
 
+	// Ensure password is at least 8 characters long
 	if len(password) < 8 {
-		return errors.New("password must be at least 8 characters long")
+		return errors.New("must be at least 8 characters long")
 	}
-	if !hasUpper || !hasLower || !hasDigit || !hasSpecial {
 
-		return errors.New("password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character")
+	// Ensure all complexity rules are met
+	if !hasUpper || !hasLower || !hasDigit || !hasSpecial {
+		return errors.New("must contain at least one uppercase letter, one lowercase letter, one digit, and one special character")
 	}
-	return nil
+
+	return nil // Password is valid
 }
 
 func ValidateLoginDetails(email, password string) error {
