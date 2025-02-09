@@ -10,15 +10,22 @@ services:
       MYSQL_DATABASE: task_manager
     ports:
       - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    
 
   go_app:
     build: .
     container_name: go_app
     restart: "no"
     depends_on:
-      - mysql_db
-    environment:
-      - DB_HOST=mysql_db
+      mysql_db:
+        condition: service_healthy
+    env_file:
+    - .env 
     ports:
       - "8080:8080"
 
@@ -32,3 +39,5 @@ services:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     ports:
       - "80:80"
+      
+
