@@ -22,7 +22,7 @@ RUN go mod download
 COPY . .
 
 # Set the environment variable
-ENV DB_URL="sql12759070:cEshL5GGK9@tcp(sql12.freesqldatabase.com:3306)/sql12759070?charset=utf8mb4&parseTime=True&loc=Local" 
+ENV DB_URL="root:root@tcp(localhost:3306)/task_manager?parseTime=true" 
 ENV JWT_SEC="ThisIsSec" 
 ENV JWT_REF_SEC="ThisIsSuperSec"
 ENV JWT_EXP_DURATION="24h"
