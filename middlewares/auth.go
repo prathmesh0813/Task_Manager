@@ -7,16 +7,21 @@ import (
 	"task_manager/dao"
 	"task_manager/logger"
 	"task_manager/utils"
+	"time"
 
+	"github.com/gin-contrib/requestid"
 	"github.com/gin-gonic/gin"
 )
 
 // Checks whether the user is authenticated to perform the action
 func Authenticate(c *gin.Context) {
+	startTime := time.Now()
+	requestId := requestid.Get(c)
 	token := c.Request.Header.Get("Authorization")
 	if token == "" {
 		logger.Warn("authorization-request-id", "Authorization token is missing", c.Request.Method, c.Request.URL.String())
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Authorization token is missing", "error": true, "data": nil})
+		el := time.Since(startTime).Microseconds()
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Authorization token is missing", "error": true, "data": nil, "execution_time": el, "request_id": requestId})
 		return
 	}
 
@@ -25,7 +30,8 @@ func Authenticate(c *gin.Context) {
 	userId, err := utils.VerifyJwtToken(token)
 	if err != nil {
 		logger.Error("", "failed to verify user token", err.Error())
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Not Authorized", "error": true, "data": nil})
+		ele := time.Since(startTime).Microseconds()
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Not Authorized", "error": true, "data": nil, "execution_time": ele, "request_id": requestId})
 		return
 	}
 
