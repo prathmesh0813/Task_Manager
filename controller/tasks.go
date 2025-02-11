@@ -145,7 +145,7 @@ func GetTasksByQuery(c *gin.Context) {
 
 	// Respond with tasks and pagination metadata
 	logger.Info(requestID, "task fetched successfully", "userID: "+strconv.Itoa(int(userId.(int64))), "sortOrder: "+sortOrder, "completed: "+completed, "page: "+strconv.Itoa(int(page)), "limit: "+strconv.Itoa(int(limit)), "totalPages: "+strconv.Itoa(int(totalPages)))
-	utils.SetResponse(c, requestID, gin.H{"tasks": tasks, "totalPages": totalPages, "currentPage": page}, "task fetched successfully", true, http.StatusOK)
+	utils.SetResponse(c, requestID, gin.H{"tasks": tasks, "totalPages": totalPages, "currentPage": page}, "task fetched successfully", false, http.StatusOK)
 }
 
 // Update Task
