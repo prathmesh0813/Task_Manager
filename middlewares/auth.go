@@ -19,7 +19,7 @@ func Authenticate(c *gin.Context) {
 	requestId := requestid.Get(c)
 	token := c.Request.Header.Get("Authorization")
 	if token == "" {
-		logger.Warn("authorization-request-id", "Authorization token is missing", c.Request.Method, c.Request.URL.String())
+		logger.Warn("authorization-request-id", "Authorization token is missing", c.Request.Method, c.Request.URL.String(), requestId)
 		el := time.Since(startTime).Microseconds()
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Authorization token is missing", "error": true, "data": nil, "execution_time": el, "request_id": requestId})
 		return
@@ -29,7 +29,7 @@ func Authenticate(c *gin.Context) {
 
 	userId, err := utils.VerifyJwtToken(token)
 	if err != nil {
-		logger.Error("", "failed to verify user token", err.Error())
+		logger.Error("", "failed to verify user token", err.Error(), requestId)
 		ele := time.Since(startTime).Microseconds()
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Not Authorized", "error": true, "data": nil, "execution_time": ele, "request_id": requestId})
 		return
