@@ -29,7 +29,7 @@ services:
       mysql_db:
         condition: service_healthy
     env_file:
-    - .env 
+      - .env 
     ports:
       - "8080"
 
@@ -45,7 +45,7 @@ services:
       mysql_db:
         condition: service_healthy
     env_file:
-    - .env 
+      - .env 
     ports:
       - "8081"
 

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"path/filepath"
 	"task_manager/dao"
 	"task_manager/logger"
 	"task_manager/routes"
@@ -12,19 +11,13 @@ import (
 )
 
 func main() {
-	
+
 	logger.InitLogger()
 	defer logger.InitLogger()
-
-	rootDir,err :=filepath.Abs("../../../")
-	if err!=nil{
-		logger.Error("","error getting root directory", err.Error())
-	}
-
-	envPath := filepath.Join(rootDir,".env")
-	err = godotenv.Load(envPath)
-	if err!=nil{
-		logger.Error("","failed to load .env file", err.Error())
+	
+	err := godotenv.Load("/app/.env")
+	if err != nil {
+		logger.Error("", "failed to load .env file", err.Error())
 	}
 
 	logger.Info("", "Starting the application")
