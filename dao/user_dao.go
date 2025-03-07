@@ -24,7 +24,7 @@ func SaveUser(db *gorm.DB, u *models.User) (int64, string, string, error) {
 	}
 
 	//hashing password
-	hashedPassword, err := utils.HashPassword(u.Password)
+	hashedPassword, err := utils.CreateHash(u.Password)
 	if err != nil {
 		tx.Rollback()
 		return 0, "", "", err

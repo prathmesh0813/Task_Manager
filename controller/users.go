@@ -303,7 +303,7 @@ func UpdatePassword(c *gin.Context) {
 	}
 
 	//Validate whether enter password is in correct format or not
-	err = utils.ValidatePassword(req.OldPassword,req.NewPassword)
+	err = utils.ValidatePassword(req.OldPassword, req.NewPassword)
 	if err != nil {
 		logger.Error(requestID, "unable to validate credentials", err.Error(), "userID: "+strconv.Itoa(int(userIdFromToken.(int64))))
 		utils.SetResponse(c, requestID, nil, err.Error(), true, http.StatusBadRequest)
@@ -327,7 +327,7 @@ func UpdatePassword(c *gin.Context) {
 	}
 
 	//Hash the new password
-	hashedPassword, err := utils.HashPassword(req.NewPassword)
+	hashedPassword, err := utils.CreateHash(req.NewPassword)
 	if err != nil {
 		logger.Error(requestID, "failed to hashed password", err.Error(), "userID: "+strconv.Itoa(int(userIdFromToken.(int64))))
 		utils.SetResponse(c, requestID, nil, "failed to hashed password", true, http.StatusBadRequest)
