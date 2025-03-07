@@ -5,4 +5,5 @@ import "github.com/gin-gonic/gin"
 func RegisterRoutes(server *gin.Engine) {
 	UserRoutes(server)
 	TaskRoutes(server)
+	ChatRoutes(server)
 }

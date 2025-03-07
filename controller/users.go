@@ -359,14 +359,15 @@ func UpdatePassword(c *gin.Context) {
 func SignOut(c *gin.Context) {
 	requestID := requestid.Get(c)
 
-	//checks whether user is signin or not
-	err := middlewares.CheckTokenPresent(c)
 	userId, exists := c.Get("userId")
 	if !exists {
 		logger.Warn(requestID, "Unauthorized, user not authenticated", "userID: "+strconv.Itoa(int(userId.(int64))))
 		utils.SetResponse(c, requestID, nil, "unauthorized, user not authenticated", true, http.StatusUnauthorized)
 		return
 	}
+	
+	//checks whether user is signin or not
+	err := middlewares.CheckTokenPresent(c)
 	if err != nil {
 		logger.Warn(requestID, "session expired or token not found", "userID: "+strconv.Itoa(int(userId.(int64))))
 		utils.SetResponse(c, requestID, nil, "session expired or token not found", true, http.StatusBadRequest)

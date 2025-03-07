@@ -146,3 +146,20 @@ func ValidateLoginDetails(email, password string) error {
 	}
 	return nil
 }
+
+
+func EmailValidation(emails []string) (bool, []string){
+
+	invalidEmails := []string{}
+
+	allValid := true
+
+	emailRegex := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+	for _, email := range emails{
+		if !emailRegex.MatchString(email){
+			invalidEmails = append(invalidEmails, email)
+			allValid = false
+		}
+	}
+	return allValid, invalidEmails
+}

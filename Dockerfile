@@ -19,8 +19,11 @@ COPY . .
 RUN go build -o users_service ./cmd/http/users/main.go
 
 
-# Build the Go application for user service
+# Build the Go application for tasks service
 RUN go build -o tasks_service ./cmd/http/tasks/main.go
 
+# Build the Go application for tasks service
+RUN go build -o chats_service ./cmd/http/chats/main.go
+
 # Expose the port
-EXPOSE 8080 8081
+EXPOSE 8080 8081 8082
