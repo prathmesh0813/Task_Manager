@@ -2,7 +2,6 @@ package controller
 
 import (
 	"bytes"
-	"context"
 	"io"
 	"net/http"
 	"strconv"
@@ -81,14 +80,14 @@ func CreateChatHead(c *gin.Context) {
 	email.GroupName = hashedGroupName
 	email.CreatedAt = time.Now()
 
-	_, err = dao.ChatCollection.InsertOne(context.TODO(), email)
+	err = dao.InserChatHead(email)
 	if err != nil {
 		logger.Error(requestID, "failed to insert chat head into db", err.Error(), "userID: "+strconv.Itoa(int(userId.(int64))), requestBody)
 		utils.SetResponse(c, requestID, nil, "failed to insert chat head into db", true, http.StatusBadRequest)
 		return
-	} 
+	}
 
-	logger.Info(requestID, "Email validate successfully", "userID: "+strconv.Itoa(int(userId.(int64))))
-	utils.SetResponse(c, requestID, nil, "Email validate successfully", false, http.StatusOK)
+	logger.Info(requestID, "Chat heads created successfully", "userID: "+strconv.Itoa(int(userId.(int64))))
+	utils.SetResponse(c, requestID, nil, "Chat heads created successfully", false, http.StatusOK)
 
 }
