@@ -11,6 +11,7 @@ import (
 
 var MongoClient *mongo.Client
 var Chats *mongo.Database
+var ChatCollection *mongo.Collection
 
 func ConnectMongoDB() error {
 	client, err := mongo.NewClient(options.Client().ApplyURI(os.Getenv("MONGODB_URL")))
@@ -28,5 +29,6 @@ func ConnectMongoDB() error {
 
 	MongoClient = client
 	Chats = client.Database("chats")
+	ChatCollection = Chats.Collection("chat_heads")
 	return nil
 }

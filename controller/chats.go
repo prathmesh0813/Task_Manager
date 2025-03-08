@@ -2,6 +2,7 @@ package controller
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"net/http"
 	"strconv"
@@ -11,6 +12,7 @@ import (
 	"task_manager/middlewares"
 	"task_manager/models"
 	"task_manager/utils"
+	"time"
 
 	"github.com/gin-contrib/requestid"
 	"github.com/gin-gonic/gin"
@@ -69,12 +71,22 @@ func CreateChatHead(c *gin.Context) {
 	groupNameStr := strings.ReplaceAll(trimStr, " ", "")
 	chatHead := strings.ToLower(groupNameStr)
 
-	_, err = utils.CreateHash(chatHead)
+	hashedGroupName, err := utils.CreateHash(chatHead)
 	if err != nil {
 		logger.Error(requestID, "Chat head not hashed", "userID: "+strconv.Itoa(int(userId.(int64))), requestBody)
 		utils.SetResponse(c, requestID, nil, "Chat head not hashed", true, http.StatusBadRequest)
 		return
 	}
+
+	email.GroupName = hashedGroupName
+	email.CreatedAt = time.Now()
+
+	_, err = dao.ChatCollection.InsertOne(context.TODO(), email)
+	if err != nil {
+		logger.Error(requestID, "failed to insert chat head into db", err.Error(), "userID: "+strconv.Itoa(int(userId.(int64))), requestBody)
+		utils.SetResponse(c, requestID, nil, "failed to insert chat head into db", true, http.StatusBadRequest)
+		return
+	} 
 
 	logger.Info(requestID, "Email validate successfully", "userID: "+strconv.Itoa(int(userId.(int64))))
 	utils.SetResponse(c, requestID, nil, "Email validate successfully", false, http.StatusOK)
