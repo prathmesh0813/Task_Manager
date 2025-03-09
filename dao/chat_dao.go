@@ -8,6 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
+//checks whether given email id's present in (SQL)db or not
 func CheckEmailPresent(emails []string) (error, []string) {
 	var errFound error
 

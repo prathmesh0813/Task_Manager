@@ -147,7 +147,7 @@ func ValidateLoginDetails(email, password string) error {
 	return nil
 }
 
-
+//Validates the format of array of email 
 func EmailValidation(emails []string) (bool, []string){
 
 	invalidEmails := []string{}

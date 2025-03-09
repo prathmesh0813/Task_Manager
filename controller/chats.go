@@ -17,6 +17,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+//Create Chat heads
 func CreateChatHead(c *gin.Context) {
 	var email models.Emails
 
@@ -39,9 +40,9 @@ func CreateChatHead(c *gin.Context) {
 
 	bodyBytes, _ := io.ReadAll(c.Request.Body)
 	requestBody := string(bodyBytes)
-
 	c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 
+	// Bind JSON request to struct
 	err = c.ShouldBindJSON(&email)
 	if err != nil {
 		logger.Error(requestID, "cannot parsed the requested data", "userID: "+strconv.Itoa(int(userId.(int64))), requestBody)
@@ -49,8 +50,8 @@ func CreateChatHead(c *gin.Context) {
 		return
 	}
 
+	// Validate the format of email
 	isValidEmail, emailID := utils.EmailValidation(email.Username)
-
 	invalidEmailStr := strings.Join(emailID, ", ")
 	if !isValidEmail {
 		logger.Error(requestID, "Email is in invalid format", "userID: "+strconv.Itoa(int(userId.(int64))), requestBody)
@@ -58,6 +59,7 @@ func CreateChatHead(c *gin.Context) {
 		return
 	}
 
+	//Checks the user exists or not with give email id's 
 	err, emailId := dao.CheckEmailPresent(email.Username)
 	misingEmail := strings.Join(emailId, ", ")
 	if err != nil {
@@ -70,6 +72,7 @@ func CreateChatHead(c *gin.Context) {
 	groupNameStr := strings.ReplaceAll(trimStr, " ", "")
 	chatHead := strings.ToLower(groupNameStr)
 
+	//Creates hash for group name
 	hashedGroupName, err := utils.CreateHash(chatHead)
 	if err != nil {
 		logger.Error(requestID, "Chat head not hashed", "userID: "+strconv.Itoa(int(userId.(int64))), requestBody)
@@ -80,6 +83,7 @@ func CreateChatHead(c *gin.Context) {
 	email.GroupName = hashedGroupName
 	email.CreatedAt = time.Now()
 
+	//Inserts the chat heads in mongodb
 	err = dao.InserChatHead(email)
 	if err != nil {
 		logger.Error(requestID, "failed to insert chat head into db", err.Error(), "userID: "+strconv.Itoa(int(userId.(int64))), requestBody)
