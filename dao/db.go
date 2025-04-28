@@ -1,6 +1,7 @@
 package dao
 
 import (
+	"fmt"
 	"os"
 	"task_manager/logger"
 	"time"
@@ -59,16 +60,30 @@ type Task struct {
 	UserID      int64 ` json:"userId"`
 }
 
+// InitDB initializes the database connection and creates tables
 func InitDB() {
-	var err error
 
-	DB, err = gorm.Open(mysql.Open(os.Getenv("DB_URL")), &gorm.Config{})
-	if err != nil {
+	// Create a channel to signal success or failure
+	dbInitDone := make(chan error) 
 
+	go func() {
+		var err error
+		DB, err = gorm.Open(mysql.Open(os.Getenv("DB_URL")), &gorm.Config{})
+		if err != nil {
+			dbInitDone <- fmt.Errorf("could not connect to database: %v", err)
+			return
+		}
+
+		createTables()
+		dbInitDone <- nil 
+	}()
+
+	// Listen for result from goroutine
+	if err := <-dbInitDone; err != nil {
 		logger.Error("requestID", "could not connect to database", err.Error())
+	} else {
+		logger.Info("requestID", "Database connection successful")
 	}
-
-	createTables()
 }
 
 func createTables() {
