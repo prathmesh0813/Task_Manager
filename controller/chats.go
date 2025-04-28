@@ -17,7 +17,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-//Create Chat heads
+// Create Chat heads
 func CreateChatHead(c *gin.Context) {
 	var email models.Emails
 
@@ -59,7 +59,7 @@ func CreateChatHead(c *gin.Context) {
 		return
 	}
 
-	//Checks the user exists or not with give email id's 
+	//Checks the user exists or not with give email id's
 	err, emailId := dao.CheckEmailPresent(email.Username)
 	misingEmail := strings.Join(emailId, ", ")
 	if err != nil {
@@ -93,5 +93,4 @@ func CreateChatHead(c *gin.Context) {
 
 	logger.Info(requestID, "Chat heads created successfully", "userID: "+strconv.Itoa(int(userId.(int64))))
 	utils.SetResponse(c, requestID, nil, "Chat heads created successfully", false, http.StatusOK)
-
 }

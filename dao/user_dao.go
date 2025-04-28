@@ -118,6 +118,10 @@ func ValidateCredentials(u *models.Login) error {
 // Fetches user details from DB
 func GetUserById(uid int64) (*models.UserResponse, error) {
 
+	// if uid == 1 { // condition to simulate failure
+	// 	return nil, errors.New("forced error for testing")
+	// }
+
 	var user models.UserResponse
 	result := DB.Model(User{}).Select("name, mobile_no, gender, email ").Where("id =?", uid).First(&user)
 	if result.Error != nil {

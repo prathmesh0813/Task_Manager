@@ -129,7 +129,8 @@ func SignIn(c *gin.Context) {
 	utils.SetResponse(c, requestID, gin.H{"refresh_token": refreshToken, "user_token": userToken}, "user sign in successfully", false, http.StatusCreated)
 }
 
-// Fetch the user details
+
+//fetch user details
 func GetUser(c *gin.Context) {
 	requestID := requestid.Get(c)
 
@@ -140,7 +141,7 @@ func GetUser(c *gin.Context) {
 		return
 	}
 
-	//checks whether user is signin or not
+	// Check token
 	err := middlewares.CheckTokenPresent(c)
 	if err != nil {
 		logger.Warn(requestID, "session expired or token not found", "userID: "+strconv.Itoa(int(userId.(int64))))
@@ -148,8 +149,21 @@ func GetUser(c *gin.Context) {
 		return
 	}
 
-	//Get user by ID
-	user, err := dao.GetUserById(userId.(int64))
+	// Separate channels for user and error
+	userChan := make(chan *models.UserResponse)
+	errChan := make(chan error)
+
+	// Goroutine to fetch user
+	go func(uid int64, uCh chan<- *models.UserResponse, eCh chan<- error) {
+		user, err := dao.GetUserById(uid)
+		uCh <- user
+		eCh <- err
+	}(userId.(int64), userChan, errChan)
+
+	// Receive from channels
+	user := <-userChan
+	err = <-errChan
+
 	if err != nil {
 		logger.Error(requestID, "could not fetch user", err.Error(), "userID: "+strconv.Itoa(int(userId.(int64))))
 		utils.SetResponse(c, requestID, nil, "could not fetch user", true, http.StatusBadRequest)
@@ -160,8 +174,9 @@ func GetUser(c *gin.Context) {
 
 	logger.Info(requestID, "User fetched successfully", "userID: "+strconv.Itoa(int(userId.(int64))))
 	utils.SetResponse(c, requestID, user, "user fetched successfully", false, http.StatusOK)
-
 }
+
+
 
 func RefreshTokenHandler(c *gin.Context) {
 	requestID := requestid.Get(c)
